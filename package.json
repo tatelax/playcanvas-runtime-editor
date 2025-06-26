@@ -32,10 +32,7 @@
     "type": "git",
     "url": "https://github.com/tatelax/playcanvas-runtime-editor.git"
   },
-      "homepage": "./",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
+  "homepage": "./",
   "bugs": {
     "url": "https://github.com/tatelax/playcanvas-runtime-editor/issues"
   },

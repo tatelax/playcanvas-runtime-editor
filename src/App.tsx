@@ -626,70 +626,8 @@ function App() {
 
   return (
     <div className="runtime-editor">
-      {/* Top Controls Bar */}
-      <div className="controls-bar">
-        <div className="controls-left">
-          <div className="connection-status" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {isConnecting ? (
-              <div className="connection-indicator connecting" title="Connecting..." style={{ color: '#ffa500', display: 'flex', alignItems: 'center' }}>
-                <WifiOff size={16} />
-              </div>
-            ) : isConnected ? (
-              <div className="connection-indicator connected" title="Connected" style={{ color: '#4caf50', display: 'flex', alignItems: 'center' }}>
-                <Wifi size={16} />
-              </div>
-            ) : (
-              <div className="connection-indicator disconnected" title="Disconnected" style={{ color: '#f44336', display: 'flex', alignItems: 'center' }}>
-                <WifiOff size={16} />
-              </div>
-            )}
-            <div className="status-text" style={{ color: '#ccc' }}>
-              <span className="connection-text" style={{ fontSize: '12px' }}>
-                {isConnecting ? 'Connecting...' : isConnected ? `Connected to ${gameName} [${gameUrl}]` : 'Disconnected'}
-              </span>
-              <span className="version-text" style={{ fontSize: '12px', opacity: 0.7 }}>v{packageJson.version}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="controls-center">
-          <button
-            className={`control-btn ${isPaused ? 'paused' : 'playing'}`}
-            onClick={handlePlayPause}
-            title={isPaused ? 'Resume' : 'Pause'}
-          >
-            {isPaused ? <Play size={16} /> : <Pause size={16} />}
-          </button>
-          <button
-            className="control-btn"
-            onClick={handleReload}
-            title="Reload Game"
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-
-        <div className="controls-right">
-          <button 
-            className="control-btn" 
-            title="GitHub Repository"
-            onClick={() => window.open('https://github.com/tatelax/playcanvas-runtime-editor', '_blank')}
-          >
-            <Github size={16} />
-          </button>
-
-          <button 
-            className="control-btn" 
-            title="Connection Settings"
-            onClick={handleShowConnectionModal}
-          >
-            <Settings size={16} />
-          </button>
-        </div>
-      </div>
-
       {/* Main Layout with Vertical Panels */}
-      <div className="main-content" style={{ height: 'calc(100vh - 48px)' }}>
+      <div className="main-content" style={{ height: 'calc(100vh - 22px)' }}>
         <PanelGroup direction="vertical" key={`vertical-${consoleCollapsed}`}>
           {/* Top Panel - Main Content Area */}
           <Panel defaultSize={75} minSize={50}>
@@ -795,8 +733,28 @@ function App() {
                       <Monitor size={16} style={{ color: '#ff6600' }} />
                       <h3>Game</h3>
                     </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Monitor size={16} style={{ color: '#b0b0b0' }} />
+                    
+                    {/* Center Controls - Play/Pause and Reload */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        className={`control-btn ${isPaused ? 'paused' : 'playing'}`}
+                        onClick={handlePlayPause}
+                        title={isPaused ? 'Resume' : 'Pause'}
+                        style={{ width: 24, height: 24 }}
+                      >
+                        {isPaused ? <Play size={12} /> : <Pause size={12} />}
+                      </button>
+                      <button
+                        className="control-btn"
+                        onClick={handleReload}
+                        title="Reload Game"
+                        style={{ width: 24, height: 24 }}
+                      >
+                        <RotateCcw size={12} />
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <CustomDropdown
                         value={aspectRatio}
                         options={aspectRatios}
@@ -871,7 +829,7 @@ function App() {
           <PanelResizeHandle className="resize-handle" />
 
           {/* Bottom Panel - Console */}
-          <Panel defaultSize={consoleCollapsed ? 3 : 22.5} minSize={consoleCollapsed ? 3 : 10} maxSize={consoleCollapsed ? 3 : 50}>
+          <Panel defaultSize={consoleCollapsed ? 3.5 : 22.5} minSize={consoleCollapsed ? 3.5 : 10} maxSize={consoleCollapsed ? 3.5 : 50}>
             <div className={`panel console-panel ${consoleCollapsed ? 'collapsed-vertical' : ''}`}>
               <div className="panel-header">
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -881,34 +839,36 @@ function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {!consoleCollapsed && (
                     <div className="console-controls">
-                      <button
-                        className={`log-filter-btn log-filter-log ${logTypeFilters.log ? 'active' : ''}`}
-                        onClick={() => setLogTypeFilters(prev => ({ ...prev, log: !prev.log }))}
-                        title="Toggle Log messages"
-                      >
-                        Log
-                      </button>
-                      <button
-                        className={`log-filter-btn log-filter-info ${logTypeFilters.info ? 'active' : ''}`}
-                        onClick={() => setLogTypeFilters(prev => ({ ...prev, info: !prev.info }))}
-                        title="Toggle Info messages"
-                      >
-                        Info
-                      </button>
-                      <button
-                        className={`log-filter-btn log-filter-warn ${logTypeFilters.warn ? 'active' : ''}`}
-                        onClick={() => setLogTypeFilters(prev => ({ ...prev, warn: !prev.warn }))}
-                        title="Toggle Warning messages"
-                      >
-                        Warn
-                      </button>
-                      <button
-                        className={`log-filter-btn log-filter-error ${logTypeFilters.error ? 'active' : ''}`}
-                        onClick={() => setLogTypeFilters(prev => ({ ...prev, error: !prev.error }))}
-                        title="Toggle Error messages"
-                      >
-                        Error
-                      </button>
+                      <div className="log-filter-group">
+                        <button
+                          className={`log-filter-btn log-filter-log ${logTypeFilters.log ? 'active' : ''}`}
+                          onClick={() => setLogTypeFilters(prev => ({ ...prev, log: !prev.log }))}
+                          title="Toggle Log messages"
+                        >
+                          Log
+                        </button>
+                        <button
+                          className={`log-filter-btn log-filter-info ${logTypeFilters.info ? 'active' : ''}`}
+                          onClick={() => setLogTypeFilters(prev => ({ ...prev, info: !prev.info }))}
+                          title="Toggle Info messages"
+                        >
+                          Info
+                        </button>
+                        <button
+                          className={`log-filter-btn log-filter-warn ${logTypeFilters.warn ? 'active' : ''}`}
+                          onClick={() => setLogTypeFilters(prev => ({ ...prev, warn: !prev.warn }))}
+                          title="Toggle Warning messages"
+                        >
+                          Warn
+                        </button>
+                        <button
+                          className={`log-filter-btn log-filter-error ${logTypeFilters.error ? 'active' : ''}`}
+                          onClick={() => setLogTypeFilters(prev => ({ ...prev, error: !prev.error }))}
+                          title="Toggle Error messages"
+                        >
+                          Error
+                        </button>
+                      </div>
                       <div className="search-box">
                         <Search size={14} />
                         <input
@@ -1247,6 +1207,48 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* VS Code Style Footer */}
+      <div className="footer-bar">
+        <div className="footer-left">
+          <div className="footer-connection-status">
+            {isConnecting ? (
+              <div className="footer-indicator" title="Connecting..." style={{ color: '#ffa500' }}>
+                <WifiOff size={12} />
+              </div>
+            ) : isConnected ? (
+              <div className="footer-indicator" title="Connected" style={{ color: '#4caf50' }}>
+                <Wifi size={12} />
+              </div>
+            ) : (
+              <div className="footer-indicator" title="Disconnected" style={{ color: '#f44336' }}>
+                <WifiOff size={12} />
+              </div>
+            )}
+            <span className="footer-text">
+              {isConnecting ? 'Connecting...' : isConnected ? `Connected to ${gameName}` : 'Disconnected'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="footer-right">
+          <span className="footer-version">v{packageJson.version}</span>
+          <button 
+            className="footer-btn" 
+            title="GitHub Repository"
+            onClick={() => window.open('https://github.com/tatelax/playcanvas-runtime-editor', '_blank')}
+          >
+            <Github size={12} />
+          </button>
+          <button 
+            className="footer-btn" 
+            title="Connection Settings"
+            onClick={handleShowConnectionModal}
+          >
+            <Settings size={12} />
+          </button>
+        </div>
+      </div>
 
     </div>
   );

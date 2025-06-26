@@ -456,8 +456,8 @@ select option {
 /* Vertical collapse (console) */
 .panel.collapsed-vertical {
   overflow: hidden;
-  min-height: 48px;
-  max-height: 48px;
+  min-height: 32px;
+  max-height: 32px;
 }
 
 .panel.collapsed-vertical .panel-content {
@@ -1007,10 +1007,15 @@ input[type="checkbox"]:disabled:hover {
 }
 
 /* Log filter buttons */
+.log-filter-group {
+  display: flex;
+  align-items: center;
+}
+
 .log-filter-btn {
   background: #2c3e41;
   border: 1px solid #4a5d61;
-  border-radius: 3px;
+  border-radius: 0;
   color: #8d9ea1;
   cursor: pointer;
   font-size: 10px;
@@ -1024,41 +1029,42 @@ input[type="checkbox"]:disabled:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-right: none;
+}
+
+.log-filter-btn:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.log-filter-btn:last-child {
+  border-radius: 0 3px 3px 0;
+  border-right: 1px solid #4a5d61;
 }
 
 .log-filter-btn:hover {
   border-color: #5a6d71;
   background: #364c50;
+  z-index: 1;
+  position: relative;
+  border-right: 1px solid #5a6d71;
+}
+
+.log-filter-btn:hover:last-child {
+  border-right: 1px solid #5a6d71;
 }
 
 .log-filter-btn.active {
-  border-color: currentColor;
-  color: white;
-  font-weight: 700;
-}
-
-.log-filter-btn.log-filter-log.active {
-  background: #b8c5c7;
-  border-color: #a8b5b7;
-  color: #2c3e41;
-}
-
-.log-filter-btn.log-filter-info.active {
-  background: #4fc3f7;
-  border-color: #3fb3e7;
-  color: white;
-}
-
-.log-filter-btn.log-filter-warn.active {
   background: #ff6600;
   border-color: #e55a00;
   color: white;
+  font-weight: 700;
+  z-index: 2;
+  position: relative;
+  border-right: 1px solid #e55a00;
 }
 
-.log-filter-btn.log-filter-error.active {
-  background: #ff6b6b;
-  border-color: #ff5b5b;
-  color: white;
+.log-filter-btn.active:last-child {
+  border-right: 1px solid #e55a00;
 }
 
 .clear-btn {
@@ -1649,4 +1655,74 @@ input[type="checkbox"]:disabled:hover {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* VS Code Style Footer */
+.footer-bar {
+  height: 22px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #cccccc;
+}
+
+.footer-left,
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-connection-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.footer-text {
+  font-size: 11px;
+  color: #cccccc;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer-version {
+  font-size: 11px;
+  color: #999;
+  font-weight: 400;
+}
+
+.footer-btn {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  width: 18px;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.footer-btn:hover {
+  background: #2d2d30;
+  color: #ffffff;
+}
+
+.footer-btn:active {
+  background: #37373d;
 }

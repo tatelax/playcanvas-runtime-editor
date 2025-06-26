@@ -1,6 +1,6 @@
 {
   "name": "@tatelax/playcanvas-runtime-editor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A clean, modern React-based runtime editor for PlayCanvas games with real-time debugging and inspection capabilities",
   "private": false,
   "main": "build/static/js/main.js",

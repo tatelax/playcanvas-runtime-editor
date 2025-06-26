@@ -289,6 +289,10 @@ body {
   color: white;
 }
 
+.node-header.selected .entity-name {
+  color: black;
+}
+
 .node-header.disabled {
   opacity: 0.5;
 }

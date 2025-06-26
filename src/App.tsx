@@ -85,6 +85,7 @@ function App() {
     }
   ]);
   const [hierarchyFilter, setHierarchyFilter] = useState('');
+  const [hierarchySearchVisible, setHierarchySearchVisible] = useState(false);
   const [consoleFilter, setConsoleFilter] = useState('');
   const [logTypeFilters, setLogTypeFilters] = useState({
     log: true,
@@ -644,7 +645,7 @@ function App() {
             )}
             <div className="status-text" style={{ color: '#ccc' }}>
               <span className="connection-text" style={{ fontSize: '12px' }}>
-                {isConnecting ? 'Connecting...' : isConnected ? 'Connected to PlayCanvas' : 'Disconnected'}
+                {isConnecting ? 'Connecting...' : isConnected ? `Connected to ${gameName} [${gameUrl}]` : 'Disconnected'}
               </span>
               <span className="version-text" style={{ fontSize: '12px', opacity: 0.7 }}>v{packageJson.version}</span>
             </div>
@@ -698,40 +699,68 @@ function App() {
                 <div className={`panel hierarchy-panel ${hierarchyCollapsed ? 'collapsed-horizontal' : ''}`}>
                   <div className="panel-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <TreePine size={16} style={{ color: '#ff6600' }} />
-                      {!hierarchyCollapsed && <h3>Scene Hierarchy</h3>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {!hierarchyCollapsed && (
-                        <div className="search-box">
-                          <Search size={14} />
-                          <input
-                            type="text"
-                            placeholder="Filter entities..."
-                            value={hierarchyFilter}
-                            onChange={(e) => setHierarchyFilter(e.target.value)}
-                          />
-                          {hierarchyFilter && (
-                            <button
-                              className="search-clear-btn"
-                              onClick={() => setHierarchyFilter('')}
-                              title="Clear filter"
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
-                        </div>
+                      {hierarchyCollapsed && (
+                        <button
+                          className="control-btn"
+                          onClick={() => setHierarchyCollapsed(!hierarchyCollapsed)}
+                          title={hierarchyCollapsed ? 'Expand Hierarchy' : 'Collapse Hierarchy'}
+                          style={{ width: 24, height: 24 }}
+                        >
+                          {hierarchyCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+                        </button>
                       )}
-                      <button
-                        className="control-btn"
-                        onClick={() => setHierarchyCollapsed(!hierarchyCollapsed)}
-                        title={hierarchyCollapsed ? 'Expand Hierarchy' : 'Collapse Hierarchy'}
-                        style={{ width: 24, height: 24 }}
-                      >
-                        {hierarchyCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-                      </button>
+                      <TreePine size={16} style={{ color: '#ff6600' }} />
+                      {!hierarchyCollapsed && <h3>Hierarchy</h3>}
                     </div>
+                    {!hierarchyCollapsed && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          className="control-btn"
+                          onClick={() => {
+                            setHierarchySearchVisible(!hierarchySearchVisible);
+                            if (hierarchySearchVisible) {
+                              setHierarchyFilter(''); // Clear filter when hiding search
+                            }
+                          }}
+                          title="Toggle Search"
+                          style={{ width: 24, height: 24 }}
+                        >
+                          <Search size={12} />
+                        </button>
+                        <button
+                          className="control-btn"
+                          onClick={() => setHierarchyCollapsed(!hierarchyCollapsed)}
+                          title={hierarchyCollapsed ? 'Expand Hierarchy' : 'Collapse Hierarchy'}
+                          style={{ width: 24, height: 24 }}
+                        >
+                          {hierarchyCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+                        </button>
+                      </div>
+                    )}
                   </div>
+                  {!hierarchyCollapsed && hierarchySearchVisible && (
+                    <div className="hierarchy-search-bar">
+                      <div className="search-box">
+                        <Search size={14} />
+                        <input
+                          type="text"
+                          placeholder="Filter entities..."
+                          value={hierarchyFilter}
+                          onChange={(e) => setHierarchyFilter(e.target.value)}
+                          autoFocus
+                        />
+                        {hierarchyFilter && (
+                          <button
+                            className="search-clear-btn"
+                            onClick={() => setHierarchyFilter('')}
+                            title="Clear filter"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {!hierarchyCollapsed && (
                     <div className="panel-content">
                       <HierarchyTree
@@ -1225,7 +1254,7 @@ function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, no
   if (!Array.isArray(entities)) {
     logger.warn('HierarchyTree received non-array entities:', entities);
     return (
-      <div style={{ paddingLeft: level * 16, color: '#f44336', fontSize: 12 }}>
+      <div style={{ paddingLeft: level * 20, color: '#f44336', fontSize: 12 }}>
         Error: Invalid entity data
       </div>
     );
@@ -1241,7 +1270,7 @@ function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, no
   }
 
   return (
-    <div style={{ paddingLeft: level * 16 }}>
+    <div>
       {uniqueEntities.map((entity, index) => (
         <HierarchyNode
           key={`${entity.guid}_${index}`}
@@ -1274,24 +1303,38 @@ function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeInde
   const currentNodeIndex = nodeIndex ? nodeIndex.current++ : 0;
   const isEvenRow = currentNodeIndex % 2 === 0;
 
+  // Get entity icon based on components or name
+  const getEntityIcon = () => {
+    if (entity.components.some(c => c.type === 'camera')) return '📷';
+    if (entity.components.some(c => c.type === 'light')) return '💡';
+    if (entity.components.some(c => c.type === 'model')) return '📦';
+    if (entity.components.some(c => c.type === 'collision')) return '🔲';
+    if (entity.name.toLowerCase().includes('ui')) return '🖼️';
+    return '📁'; // Default folder icon
+  };
+
   return (
     <div className="hierarchy-node">
       <div
-        className={`node-header ${isSelected ? 'selected' : ''} ${!entity.enabled ? 'disabled' : ''} ${isEvenRow ? 'zebra-even' : 'zebra-odd'}`}
+        className={`node-header ${isSelected ? 'selected' : ''} ${!entity.enabled ? 'disabled' : ''}`}
+        style={{ paddingLeft: `${8 + level * 20}px` }}
         onClick={() => onSelectEntity(entity)}
       >
-        {hasChildren && (
-          <div
-            className="expand-button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(!isExpanded);
-            }}
-          >
-            {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          </div>
-        )}
-        {!hasChildren && <div style={{ width: 16, marginRight: 4 }} />}
+        <div className="node-indent">
+          {hasChildren && (
+            <div
+              className="expand-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </div>
+          )}
+          {!hasChildren && <div style={{ width: 16 }} />}
+        </div>
+        <span className="entity-icon">{getEntityIcon()}</span>
         <span className="entity-name">{entity.name}</span>
         {entity.tags.length > 0 && (
           <div className="entity-tags">

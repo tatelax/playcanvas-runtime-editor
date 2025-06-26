@@ -259,6 +259,12 @@ body {
   padding: 0;
 }
 
+.hierarchy-search-bar {
+  padding: 8px 12px;
+  border-bottom: 1px solid #4a5d61;
+  background: #364447;
+}
+
 .hierarchy-node {
   user-select: none;
 }
@@ -266,34 +272,31 @@ body {
 .node-header {
   display: flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 3px 8px 3px 0;
   cursor: pointer;
   transition: background-color 0.15s ease;
-  border-radius: 2px;
-  margin: 0px 4px;
-  min-height: 20px;
-}
-
-/* Zebra striping for hierarchy rows */
-.node-header.zebra-even {
-  background: #3d5559;
-}
-
-.node-header.zebra-odd {
-  background: #334449;
+  min-height: 22px;
+  border-radius: 0;
+  margin: 0;
 }
 
 .node-header:hover {
-  background: #4a5d61 !important;
+  background: #3a4c50;
 }
 
 .node-header.selected {
-  background: #2a3539 !important;
+  background: #ff6600 !important;
   color: white;
 }
 
 .node-header.disabled {
   opacity: 0.5;
+}
+
+.node-indent {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
 }
 
 .expand-button {
@@ -302,14 +305,21 @@ body {
   justify-content: center;
   width: 16px;
   height: 16px;
-  margin-right: 4px;
   cursor: pointer;
   border-radius: 2px;
   transition: background-color 0.15s ease;
+  color: #8d9ea1;
 }
 
 .expand-button:hover {
-  background: #404040;
+  background: #4a5d61;
+}
+
+.entity-icon {
+  font-size: 12px;
+  margin-right: 6px;
+  opacity: 0.8;
+  user-select: none;
 }
 
 .entity-name {

@@ -1137,7 +1137,7 @@ function App() {
                       height: 'auto'
                     }}
                   >
-                    Connect
+                    SAVE
                   </button>
                 </div>
               </div>

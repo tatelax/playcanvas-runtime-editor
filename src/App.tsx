@@ -1226,7 +1226,7 @@ function App() {
               </div>
             )}
             <span className="footer-text">
-              {isConnecting ? 'Connecting...' : isConnected ? `Connected to ${gameName}` : 'Disconnected'}
+              {isConnecting ? 'Connecting...' : isConnected ? `Connected to ${gameName} @ ${gameUrl}` : 'Disconnected'}
             </span>
           </div>
         </div>

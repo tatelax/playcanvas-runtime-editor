@@ -369,6 +369,10 @@ body {
 }
 
 /* Game panel */
+.game-panel .panel-content {
+  padding: 0;
+  overflow: hidden;
+}
 
 .view-controls {
   display: flex;
@@ -1162,17 +1166,17 @@ input[type="checkbox"]:disabled:hover {
 }
 
 .resize-handle[data-panel-group-direction="horizontal"] {
-  width: 2px;
+  width: 1px;
   cursor: col-resize;
 }
 
 .resize-handle[data-panel-group-direction="vertical"] {
-  height: 2px;
+  height: 1px;
   cursor: row-resize;
 }
 
 .resize-handle.horizontal {
-  height: 2px;
+  height: 1px;
   cursor: row-resize;
 }
 

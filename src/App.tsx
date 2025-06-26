@@ -121,6 +121,22 @@ function App() {
   // Counter for generating unique console message IDs
   const consoleMessageIdCounter = useRef(1);
 
+  // Helper function to find entity by GUID in hierarchy
+  const findEntityInHierarchy = (entities: PCEntityData[], guid: string): PCEntityData | null => {
+    for (const entity of entities) {
+      if (entity.guid === guid) {
+        return entity;
+      }
+      if (entity.children && entity.children.length > 0) {
+        const found = findEntityInHierarchy(entity.children, guid);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  };
+
   // Load saved settings from localStorage
   useEffect(() => {
     try {
@@ -264,6 +280,7 @@ function App() {
     });
 
     debugBridge.onHierarchyUpdate((hierarchy: any) => {
+      console.log('📥 Received hierarchy update from game');
       logger.debug('Received hierarchy data:', hierarchy);
       
       let newHierarchy: PCEntityData[] = [];
@@ -286,6 +303,28 @@ function App() {
       
       if (currentString !== newString) {
         setEntityHierarchy(newHierarchy);
+        
+        // Update selected entity if it exists in the new hierarchy
+        if (selectedEntity) {
+          const updatedSelectedEntity = findEntityInHierarchy(newHierarchy, selectedEntity.guid);
+          if (updatedSelectedEntity) {
+            console.log('🔄 Updating selected entity:', {
+              oldEnabled: selectedEntity.enabled,
+              newEnabled: updatedSelectedEntity.enabled,
+              entityName: updatedSelectedEntity.name,
+              guid: selectedEntity.guid
+            });
+            // Force re-render by using functional update
+            setSelectedEntity(prev => {
+              if (prev && prev.guid === updatedSelectedEntity.guid) {
+                return updatedSelectedEntity;
+              }
+              return prev;
+            });
+          } else {
+            console.warn('❌ Selected entity not found in updated hierarchy:', selectedEntity.guid);
+          }
+        }
       }
     });
 
@@ -353,6 +392,17 @@ function App() {
   useEffect(() => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [consoleMessages]);
+
+  // Debug selectedEntity changes
+  useEffect(() => {
+    if (selectedEntity) {
+      console.log('✅ Selected entity state changed:', {
+        name: selectedEntity.name,
+        enabled: selectedEntity.enabled,
+        guid: selectedEntity.guid
+      });
+    }
+  }, [selectedEntity]);
 
   // Set up iframe reference when component mounts
   useEffect(() => {
@@ -771,7 +821,11 @@ function App() {
                   </div>
                   {!inspectorCollapsed && (
                     <div className="panel-content">
-                      <EntityInspector entity={selectedEntity} />
+                      <EntityInspector 
+                      key={selectedEntity ? `${selectedEntity.guid}-${selectedEntity.enabled}-${JSON.stringify(selectedEntity.position)}` : 'no-entity'} 
+                      entity={selectedEntity} 
+                      isConnected={isConnected} 
+                    />
                     </div>
                   )}
                 </div>
@@ -1263,9 +1317,10 @@ function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeInde
 // Entity Inspector Component
 interface EntityInspectorProps {
   entity: PCEntityData | null;
+  isConnected: boolean;
 }
 
-function EntityInspector({ entity }: EntityInspectorProps) {
+function EntityInspector({ entity, isConnected }: EntityInspectorProps) {
   const [metadataExpanded, setMetadataExpanded] = useState(true);
   const [transformExpanded, setTransformExpanded] = useState(true);
   const [componentsExpanded, setComponentsExpanded] = useState(true);
@@ -1279,11 +1334,19 @@ function EntityInspector({ entity }: EntityInspectorProps) {
   }
 
   const renderTransformField = (label: string, vec: { x: number; y: number; z: number } | undefined) => {
+    const handleTransformChange = (newVec: { x: number; y: number; z: number }) => {
+      if (!entity || !isConnected) return;
+      
+      const transformType = label.toLowerCase() as ('position' | 'rotation' | 'scale');
+      debugBridge.updateEntityTransform(entity.guid, transformType, newVec);
+    };
+
     return (
       <PropertyRenderer
         label={label}
         value={vec || { x: 0, y: 0, z: 0 }}
-        readOnly={true}
+        onChange={isConnected ? handleTransformChange : undefined}
+        readOnly={!isConnected}
       />
     );
   };
@@ -1313,7 +1376,17 @@ function EntityInspector({ entity }: EntityInspectorProps) {
                   type="checkbox"
                   id={`enabled-${entity.guid}`}
                   checked={entity.enabled}
-                  readOnly
+                  onChange={(e) => {
+                    console.log('🔘 Checkbox clicked:', {
+                      entityName: entity.name,
+                      newState: e.target.checked,
+                      currentState: entity.enabled
+                    });
+                    if (isConnected) {
+                      debugBridge.toggleEntityEnabled(entity.guid, e.target.checked);
+                    }
+                  }}
+                  disabled={!isConnected}
                   title="Enabled"
                 />
                 <label htmlFor={`enabled-${entity.guid}`} className="checkbox-label-inline"></label>
@@ -1406,7 +1479,7 @@ function EntityInspector({ entity }: EntityInspectorProps) {
         {componentsExpanded && (
           <div style={{ padding: '8px' }}>
             {entity.components.map((component, index) => (
-              <ComponentInspector key={index} component={component} />
+              <ComponentInspector key={index} component={component} entity={entity} isConnected={isConnected} />
             ))}
           </div>
         )}
@@ -1418,9 +1491,11 @@ function EntityInspector({ entity }: EntityInspectorProps) {
 // Component Inspector
 interface ComponentInspectorProps {
   component: PCComponentData;
+  entity: PCEntityData;
+  isConnected: boolean;
 }
 
-function ComponentInspector({ component }: ComponentInspectorProps) {
+function ComponentInspector({ component, entity, isConnected }: ComponentInspectorProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Define enum options for specific component types and properties
@@ -1468,7 +1543,12 @@ function ComponentInspector({ component }: ComponentInspectorProps) {
           <input
             type="checkbox"
             checked={component.enabled}
-            readOnly
+            onChange={(e) => {
+              if (isConnected) {
+                debugBridge.enableComponent(entity.guid, component.type, e.target.checked);
+              }
+            }}
+            disabled={!isConnected}
           />
         </label>
       </div>
@@ -1480,7 +1560,10 @@ function ComponentInspector({ component }: ComponentInspectorProps) {
               label={key}
               value={value}
               enumOptions={getEnumOptions(component.type, key)}
-              readOnly={true} // Currently read-only, can be made editable later
+              onChange={isConnected ? (newValue) => {
+                debugBridge.updateComponentProperty(entity.guid, component.type, key, newValue);
+              } : undefined}
+              readOnly={!isConnected}
             />
           ))}
         </div>

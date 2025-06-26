@@ -215,6 +215,33 @@ export class PlayCanvasDebugBridge {
     });
   }
 
+  // Transform update methods
+  updateEntityTransform(entityGuid: string, transformType: 'position' | 'rotation' | 'scale', value: { x: number; y: number; z: number }) {
+    this.sendToGame({
+      type: 'debug-transform-update',
+      entityGuid,
+      transformType,
+      value
+    });
+  }
+
+  updateEntityProperty(entityGuid: string, propertyPath: string, value: any) {
+    this.sendToGame({
+      type: 'debug-entity-property-update',
+      entityGuid,
+      propertyPath,
+      value
+    });
+  }
+
+  toggleEntityEnabled(entityGuid: string, enabled: boolean) {
+    this.sendToGame({
+      type: 'debug-entity-enable',
+      entityGuid,
+      enabled
+    });
+  }
+
   getConnectionStatus(): boolean {
     return this.isConnected;
   }

@@ -763,17 +763,23 @@ function App() {
                   )}
                   {!hierarchyCollapsed && (
                     <div className="panel-content">
-                      <HierarchyTree
-                        entities={filteredHierarchy}
-                        selectedEntity={selectedEntity}
-                        onSelectEntity={(entity) => {
-                          setSelectedEntity(entity);
-                          if (isConnected) {
-                            debugBridge.selectEntity(entity.guid);
-                          }
-                        }}
-                        nodeIndex={{ current: 0 }}
-                      />
+                      {filteredHierarchy.length === 0 ? (
+                        <div className="hierarchy-empty-state">
+                          No entities yet
+                        </div>
+                      ) : (
+                        <HierarchyTree
+                          entities={filteredHierarchy}
+                          selectedEntity={selectedEntity}
+                          onSelectEntity={(entity) => {
+                            setSelectedEntity(entity);
+                            if (isConnected) {
+                              debugBridge.selectEntity(entity.guid);
+                            }
+                          }}
+                          nodeIndex={{ current: 0 }}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
@@ -875,38 +881,34 @@ function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {!consoleCollapsed && (
                     <div className="console-controls">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={logTypeFilters.log}
-                          onChange={(e) => setLogTypeFilters(prev => ({ ...prev, log: e.target.checked }))}
-                        />
+                      <button
+                        className={`log-filter-btn log-filter-log ${logTypeFilters.log ? 'active' : ''}`}
+                        onClick={() => setLogTypeFilters(prev => ({ ...prev, log: !prev.log }))}
+                        title="Toggle Log messages"
+                      >
                         Log
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={logTypeFilters.info}
-                          onChange={(e) => setLogTypeFilters(prev => ({ ...prev, info: e.target.checked }))}
-                        />
+                      </button>
+                      <button
+                        className={`log-filter-btn log-filter-info ${logTypeFilters.info ? 'active' : ''}`}
+                        onClick={() => setLogTypeFilters(prev => ({ ...prev, info: !prev.info }))}
+                        title="Toggle Info messages"
+                      >
                         Info
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={logTypeFilters.warn}
-                          onChange={(e) => setLogTypeFilters(prev => ({ ...prev, warn: e.target.checked }))}
-                        />
+                      </button>
+                      <button
+                        className={`log-filter-btn log-filter-warn ${logTypeFilters.warn ? 'active' : ''}`}
+                        onClick={() => setLogTypeFilters(prev => ({ ...prev, warn: !prev.warn }))}
+                        title="Toggle Warning messages"
+                      >
                         Warn
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={logTypeFilters.error}
-                          onChange={(e) => setLogTypeFilters(prev => ({ ...prev, error: e.target.checked }))}
-                        />
+                      </button>
+                      <button
+                        className={`log-filter-btn log-filter-error ${logTypeFilters.error ? 'active' : ''}`}
+                        onClick={() => setLogTypeFilters(prev => ({ ...prev, error: !prev.error }))}
+                        title="Toggle Error messages"
+                      >
                         Error
-                      </label>
+                      </button>
                       <div className="search-box">
                         <Search size={14} />
                         <input
@@ -947,16 +949,24 @@ function App() {
               </div>
               {!consoleCollapsed && (
                 <div className="panel-content console-content">
-                  {filteredConsoleMessages.map(msg => (
-                    <div key={msg.id} className={`console-message ${msg.type}`}>
-                      <span className="timestamp">
-                        {msg.timestamp.toLocaleTimeString()}
-                      </span>
-                      <span className="message">{msg.message}</span>
-                      {msg.source && <span className="source">({msg.source})</span>}
+                  {filteredConsoleMessages.length === 0 ? (
+                    <div className="console-empty-state">
+                      No logs yet
                     </div>
-                  ))}
-                  <div ref={consoleEndRef} />
+                  ) : (
+                    <>
+                      {filteredConsoleMessages.map(msg => (
+                        <div key={msg.id} className={`console-message ${msg.type}`}>
+                          <span className="timestamp">
+                            {msg.timestamp.toLocaleTimeString()}
+                          </span>
+                          <span className="message">{msg.message}</span>
+                          {msg.source && <span className="source">({msg.source})</span>}
+                        </div>
+                      ))}
+                      <div ref={consoleEndRef} />
+                    </>
+                  )}
                 </div>
               )}
             </div>

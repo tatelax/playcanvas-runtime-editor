@@ -273,6 +273,17 @@ body {
   width: 100%;
 }
 
+.hierarchy-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8d9ea1;
+  font-size: 12px;
+  font-style: italic;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
 .hierarchy-node {
   user-select: none;
 }
@@ -983,7 +994,7 @@ input[type="checkbox"]:disabled:hover {
 .console-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .checkbox-label {
@@ -993,6 +1004,61 @@ input[type="checkbox"]:disabled:hover {
   font-size: 11px;
   cursor: pointer;
   color: #8d9ea1;
+}
+
+/* Log filter buttons */
+.log-filter-btn {
+  background: #2c3e41;
+  border: 1px solid #4a5d61;
+  border-radius: 3px;
+  color: #8d9ea1;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.log-filter-btn:hover {
+  border-color: #5a6d71;
+  background: #364c50;
+}
+
+.log-filter-btn.active {
+  border-color: currentColor;
+  color: white;
+  font-weight: 700;
+}
+
+.log-filter-btn.log-filter-log.active {
+  background: #b8c5c7;
+  border-color: #a8b5b7;
+  color: #2c3e41;
+}
+
+.log-filter-btn.log-filter-info.active {
+  background: #4fc3f7;
+  border-color: #3fb3e7;
+  color: white;
+}
+
+.log-filter-btn.log-filter-warn.active {
+  background: #ff6600;
+  border-color: #e55a00;
+  color: white;
+}
+
+.log-filter-btn.log-filter-error.active {
+  background: #ff6b6b;
+  border-color: #ff5b5b;
+  color: white;
 }
 
 .clear-btn {
@@ -1017,6 +1083,17 @@ input[type="checkbox"]:disabled:hover {
   padding: 4px 8px;
   overflow-y: auto;
   max-height: calc(100% - 48px);
+}
+
+.console-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8d9ea1;
+  font-size: 12px;
+  font-style: italic;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .console-message {

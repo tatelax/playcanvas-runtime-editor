@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, Minus, Plus, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Bug, Wifi, WifiOff } from 'lucide-react';
+import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, Minus, Plus, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff } from 'lucide-react';
 import { debugBridge, PCEntityData, PCComponentData, PerformanceData } from './PlayCanvasDebugBridge';
-import { DiagnosticPanel } from './DiagnosticPanel';
 import { logger, LogLevel } from './Logger';
 import { PropertyRenderer } from './PropertyInspectors';
 import packageJson from '../package.json';
@@ -93,7 +92,17 @@ function App() {
     warn: true,
     error: true
   });
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [logLevel, setLogLevel] = useState<LogLevel>(() => {
+    try {
+      const saved = localStorage.getItem('playcanvas-debug-logger-level') as LogLevel;
+      if (saved && ['none', 'error', 'warn', 'info', 'debug'].includes(saved)) {
+        return saved;
+      }
+    } catch (error) {
+      // Ignore errors loading from localStorage
+    }
+    return logger.getLevel();
+  });
 
   const [hierarchyCollapsed, setHierarchyCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
@@ -135,7 +144,13 @@ function App() {
       const savedLogLevel = localStorage.getItem('playcanvas-debug-logger-level') as LogLevel;
       if (savedLogLevel && ['none', 'error', 'warn', 'info', 'debug'].includes(savedLogLevel)) {
         logger.setLevel(savedLogLevel);
+        setLogLevel(savedLogLevel);
         logger.debug('Loaded logger level:', savedLogLevel);
+        // Send to game as well
+        setTimeout(() => debugBridge.setGameLogLevel(savedLogLevel), 100);
+      } else {
+        // Set initial log level to game
+        setTimeout(() => debugBridge.setGameLogLevel(logLevel), 100);
       }
     } catch (error) {
       logger.warn('Failed to load saved settings:', error);
@@ -163,6 +178,20 @@ function App() {
     setShowConnectionModal(true);
   };
 
+  // Handle log level changes
+  const handleLogLevelChange = (newLevel: LogLevel) => {
+    setLogLevel(newLevel);
+    logger.setLevel(newLevel);
+    // Send log level to game
+    debugBridge.setGameLogLevel(newLevel);
+    // Persist to localStorage
+    try {
+      localStorage.setItem('playcanvas-debug-logger-level', newLevel);
+    } catch (error) {
+      logger.warn('Failed to save logger level:', error);
+    }
+  };
+
   // Reset all settings to defaults
   const resetAllSettings = () => {
     // Reset aspect ratio
@@ -173,14 +202,20 @@ function App() {
     setInspectorCollapsed(false);
     setConsoleCollapsed(false);
     
+    // Reset log level
+    setLogLevel('info');
+    logger.setLevel('info');
+    
     // Clear localStorage
     try {
       localStorage.removeItem(ASPECT_RATIO_KEY);
       localStorage.removeItem(GAME_URL_KEY);
+      localStorage.removeItem('playcanvas-debug-logger-level');
     } catch (error) {
       logger.warn('Failed to clear localStorage:', error);
     }
     
+    addConsoleMessage('info', 'All settings reset to defaults');
     logger.info('All settings reset to defaults');
   };
 
@@ -515,10 +550,7 @@ function App() {
     logger.debug('Filtered hierarchy:', filteredHierarchy);
   }, [entityHierarchy, filteredHierarchy]);
 
-  // Debug diagnostics state
-  useEffect(() => {
-    logger.debug('Diagnostics panel state changed:', showDiagnostics);
-  }, [showDiagnostics]);
+
 
   const filteredConsoleMessages = consoleMessages.filter(msg => {
     // Apply text filter
@@ -554,7 +586,7 @@ function App() {
               </div>
             )}
             <div className="status-text" style={{ color: '#ccc' }}>
-              <span className="connection-text" style={{ fontSize: '14px' }}>
+              <span className="connection-text" style={{ fontSize: '12px' }}>
                 {isConnecting ? 'Connecting...' : isConnected ? 'Connected to PlayCanvas' : 'Disconnected'}
               </span>
               <span className="version-text" style={{ fontSize: '12px', opacity: 0.7 }}>v{packageJson.version}</span>
@@ -587,20 +619,7 @@ function App() {
           >
             <Github size={16} />
           </button>
-          <button 
-            className="control-btn" 
-            title="Diagnostics"
-            onClick={() => {
-              logger.debug('Diagnostics button clicked, current state:', showDiagnostics);
-              setShowDiagnostics(!showDiagnostics);
-            }}
-            style={{ 
-              backgroundColor: showDiagnostics ? '#2196f3' : undefined,
-              borderColor: showDiagnostics ? '#1976d2' : undefined
-            }}
-          >
-            <Bug size={16} />
-          </button>
+
           <button 
             className="control-btn" 
             title="Connection Settings"
@@ -853,14 +872,7 @@ function App() {
         </PanelGroup>
       </div>
 
-      {/* Diagnostic Panel */}
-      {showDiagnostics && (
-        <DiagnosticPanel 
-          onClose={() => setShowDiagnostics(false)} 
-          gameFrameRef={gameFrameRef}
-          onSettingsReset={resetAllSettings}
-        />
-      )}
+
 
       {/* Connection Modal */}
       {showConnectionModal && (
@@ -928,49 +940,94 @@ function App() {
               />
             </div>
 
-            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#1a1a1a', borderRadius: '4px', border: '1px solid #333' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#ff6600', fontSize: '14px' }}>Troubleshooting:</h4>
-              <ul style={{ margin: '0', paddingLeft: '16px', color: '#ccc', fontSize: '12px', lineHeight: '1.4' }}>
-                <li>Make sure your PlayCanvas game is running on the specified URL</li>
-                <li>Default development server runs on <code style={{ backgroundColor: '#333', padding: '2px 4px', borderRadius: '2px' }}>http://localhost:5173/</code></li>
-                <li>If using a different port, update the URL accordingly</li>
-                <li>Ensure the game includes the debug integration script</li>
-                <li>Check browser console for connection errors</li>
-                <li>CORS issues may prevent connection to different domains</li>
-              </ul>
-            </div>
+                         <div style={{ marginBottom: '20px' }}>
+               <label style={{ color: '#ccc', display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                 Log Level:
+               </label>
+               <select
+                 value={logLevel}
+                 onChange={(e) => handleLogLevelChange(e.target.value as LogLevel)}
+                 style={{
+                   width: '100%',
+                   padding: '8px 12px',
+                   backgroundColor: '#1a1a1a',
+                   border: '1px solid #555',
+                   borderRadius: '4px',
+                   color: '#fff',
+                   fontSize: '14px',
+                   boxSizing: 'border-box'
+                 }}
+               >
+                 <option value="none">None</option>
+                 <option value="error">Error</option>
+                 <option value="warn">Warn</option>
+                 <option value="info">Info</option>
+                 <option value="debug">Debug</option>
+               </select>
+               <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                 Controls logging level for both runtime editor and game
+               </div>
+             </div>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setShowConnectionModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'transparent',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  color: '#ccc',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConnect}
-                disabled={!tempGameUrl.trim()}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: tempGameUrl.trim() ? '#ff6600' : '#555',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: '#fff',
-                  cursor: tempGameUrl.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '14px'
-                }}
-              >
-                Connect
-              </button>
-            </div>
+             <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#1a1a1a', borderRadius: '4px', border: '1px solid #333' }}>
+               <h4 style={{ margin: '0 0 8px 0', color: '#ff6600', fontSize: '14px' }}>Troubleshooting:</h4>
+               <ul style={{ margin: '0', paddingLeft: '16px', color: '#ccc', fontSize: '12px', lineHeight: '1.4' }}>
+                 <li>Make sure your PlayCanvas game is running on the specified URL</li>
+                 <li>Default development server runs on <code style={{ backgroundColor: '#333', padding: '2px 4px', borderRadius: '2px' }}>http://localhost:5173/</code></li>
+                 <li>If using a different port, update the URL accordingly</li>
+                 <li>Ensure the game includes the debug integration script</li>
+                 <li>Check browser console for connection errors</li>
+                 <li>CORS issues may prevent connection to different domains</li>
+               </ul>
+             </div>
+
+                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+               <button
+                 onClick={resetAllSettings}
+                 style={{
+                   padding: '8px 16px',
+                   backgroundColor: '#d32f2f',
+                   border: '1px solid #b71c1c',
+                   borderRadius: '4px',
+                   color: '#fff',
+                   cursor: 'pointer',
+                   fontSize: '14px'
+                 }}
+               >
+                 Reset All Settings
+               </button>
+               <div style={{ display: 'flex', gap: '12px' }}>
+                 <button
+                   onClick={() => setShowConnectionModal(false)}
+                   style={{
+                     padding: '8px 16px',
+                     backgroundColor: 'transparent',
+                     border: '1px solid #555',
+                     borderRadius: '4px',
+                     color: '#ccc',
+                     cursor: 'pointer',
+                     fontSize: '14px'
+                   }}
+                 >
+                   Cancel
+                 </button>
+                 <button
+                   onClick={handleConnect}
+                   disabled={!tempGameUrl.trim()}
+                   style={{
+                     padding: '8px 16px',
+                     backgroundColor: tempGameUrl.trim() ? '#ff6600' : '#555',
+                     border: 'none',
+                     borderRadius: '4px',
+                     color: '#fff',
+                     cursor: tempGameUrl.trim() ? 'pointer' : 'not-allowed',
+                     fontSize: '14px'
+                   }}
+                 >
+                   Connect
+                 </button>
+               </div>
+             </div>
           </div>
         </div>
       )}

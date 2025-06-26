@@ -874,7 +874,7 @@ function App() {
 
 
 
-      {/* Connection Modal */}
+      {/* Settings Modal */}
       {showConnectionModal && (
         <div className="modal-overlay" style={{
           position: 'fixed',
@@ -882,152 +882,266 @@ function App() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(44, 62, 65, 0.9)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="modal-content" style={{
-            backgroundColor: '#2d2d2d',
-            border: '1px solid #555',
-            borderRadius: '8px',
-            padding: '24px',
-            minWidth: '500px',
-            maxWidth: '600px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+          <div className="panel" style={{
+            backgroundColor: '#364447',
+            border: '1px solid #4a5d61',
+            borderRadius: '6px',
+            minWidth: '520px',
+            maxWidth: '640px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '40vh'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>Game Connection Settings</h2>
+            <div className="panel-header" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 16px',
+              borderBottom: '1px solid #4a5d61',
+              backgroundColor: '#2a3539'
+            }}>
+              <h3 style={{ 
+                margin: 0, 
+                color: '#b8c5c7', 
+                fontSize: '13px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Connection & Settings
+              </h3>
               <button
                 onClick={() => setShowConnectionModal(false)}
+                className="control-btn"
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#999',
+                  color: '#8d9ea1',
                   cursor: 'pointer',
-                  padding: '4px'
+                  width: '24px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <X size={16} />
+                <X size={14} />
               </button>
             </div>
             
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ color: '#ccc', display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                Game URL:
-              </label>
-              <input
-                type="text"
-                value={tempGameUrl}
-                onChange={(e) => setTempGameUrl(e.target.value)}
-                placeholder="http://localhost:5173/"
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: '#1a1a1a',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  color: '#fff',
-                  fontSize: '14px',
-                  boxSizing: 'border-box'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleConnect();
-                  }
-                }}
-              />
+            <div className="panel-content" style={{
+              padding: '12px 16px',
+              overflowY: 'auto'
+            }}>
+              <div className="property-group" style={{ marginBottom: '16px' }}>
+                <h5 style={{ 
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  color: '#8d9ea1',
+                  margin: '0 0 8px 0', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Game Connection
+                </h5>
+                <div className="property-row">
+                  <label className="property-label" style={{ 
+                    color: '#b8c5c7',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    marginBottom: '6px',
+                    display: 'block'
+                  }}>
+                    Game URL:
+                  </label>
+                  <input
+                    type="text"
+                    value={tempGameUrl}
+                    onChange={(e) => setTempGameUrl(e.target.value)}
+                    placeholder="http://localhost:5173/"
+                    className="url-input"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      backgroundColor: '#2a3539',
+                      border: '1px solid #4a5d61',
+                      borderRadius: '3px',
+                      color: '#b8c5c7',
+                      fontSize: '13px',
+                      boxSizing: 'border-box',
+                      transition: 'border-color 0.2s ease'
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleConnect();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="property-group" style={{ marginBottom: '16px' }}>
+                <h5 style={{ 
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  color: '#8d9ea1',
+                  margin: '0 0 8px 0', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Runtime Editor Settings
+                </h5>
+                <div className="property-row">
+                  <label className="property-label" style={{ 
+                    color: '#b8c5c7',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    marginBottom: '6px',
+                    display: 'block'
+                  }}>
+                    Log Level:
+                  </label>
+                  <CustomDropdown
+                    value={logLevel}
+                    options={[
+                      { value: 'none', label: 'None' },
+                      { value: 'error', label: 'Error' },
+                      { value: 'warn', label: 'Warn' },
+                      { value: 'info', label: 'Info' },
+                      { value: 'debug', label: 'Debug' }
+                    ]}
+                    onChange={(value) => handleLogLevelChange(value as LogLevel)}
+                  />
+                </div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#8d9ea1', 
+                  marginTop: '6px', 
+                  lineHeight: '1.4',
+                  fontStyle: 'italic'
+                }}>
+                  Controls console message visibility in the runtime editor only
+                </div>
+              </div>
+
+              <div className="property-group" style={{ 
+                marginBottom: '16px',
+                padding: '12px',
+                backgroundColor: '#2a3539',
+                borderRadius: '3px',
+                border: '1px solid #4a5d61'
+              }}>
+                <h5 style={{ 
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  color: '#ff6600',
+                  margin: '0 0 8px 0', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Troubleshooting
+                </h5>
+                <ul style={{ 
+                  margin: '0', 
+                  paddingLeft: '16px', 
+                  color: '#8d9ea1', 
+                  fontSize: '11px', 
+                  lineHeight: '1.5'
+                }}>
+                  <li>Make sure your PlayCanvas game is running on the specified URL</li>
+                  <li>Default development server runs on <code style={{ 
+                    backgroundColor: '#364447', 
+                    padding: '2px 4px', 
+                    borderRadius: '2px',
+                    color: '#b8c5c7'
+                  }}>http://localhost:5173/</code></li>
+                  <li>If using a different port, update the URL accordingly</li>
+                  <li>Ensure the game includes the debug integration script</li>
+                  <li>Check browser console for connection errors</li>
+                  <li>CORS issues may prevent connection to different domains</li>
+                </ul>
+              </div>
+
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                paddingTop: '8px',
+                borderTop: '1px solid #4a5d61'
+              }}>
+                <button
+                  onClick={resetAllSettings}
+                  className="control-btn"
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#d32f2f',
+                    border: '1px solid #b71c1c',
+                    borderRadius: '3px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    width: 'auto',
+                    height: 'auto'
+                  }}
+                >
+                  Reset All Settings
+                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => setShowConnectionModal(false)}
+                    className="control-btn"
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #4a5d61',
+                      borderRadius: '3px',
+                      color: '#8d9ea1',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      width: 'auto',
+                      height: 'auto'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConnect}
+                    disabled={!tempGameUrl.trim()}
+                    className="control-btn"
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: tempGameUrl.trim() ? '#ff6600' : '#4a5d61',
+                      border: tempGameUrl.trim() ? '1px solid #e55a00' : '1px solid #4a5d61',
+                      borderRadius: '3px',
+                      color: '#fff',
+                      cursor: tempGameUrl.trim() ? 'pointer' : 'not-allowed',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      width: 'auto',
+                      height: 'auto'
+                    }}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </div>
             </div>
-
-                         <div style={{ marginBottom: '20px' }}>
-               <label style={{ color: '#ccc', display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                 Log Level:
-               </label>
-               <select
-                 value={logLevel}
-                 onChange={(e) => handleLogLevelChange(e.target.value as LogLevel)}
-                 style={{
-                   width: '100%',
-                   padding: '8px 12px',
-                   backgroundColor: '#1a1a1a',
-                   border: '1px solid #555',
-                   borderRadius: '4px',
-                   color: '#fff',
-                   fontSize: '14px',
-                   boxSizing: 'border-box'
-                 }}
-               >
-                 <option value="none">None</option>
-                 <option value="error">Error</option>
-                 <option value="warn">Warn</option>
-                 <option value="info">Info</option>
-                 <option value="debug">Debug</option>
-               </select>
-               <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
-                 Controls logging level for both runtime editor and game
-               </div>
-             </div>
-
-             <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#1a1a1a', borderRadius: '4px', border: '1px solid #333' }}>
-               <h4 style={{ margin: '0 0 8px 0', color: '#ff6600', fontSize: '14px' }}>Troubleshooting:</h4>
-               <ul style={{ margin: '0', paddingLeft: '16px', color: '#ccc', fontSize: '12px', lineHeight: '1.4' }}>
-                 <li>Make sure your PlayCanvas game is running on the specified URL</li>
-                 <li>Default development server runs on <code style={{ backgroundColor: '#333', padding: '2px 4px', borderRadius: '2px' }}>http://localhost:5173/</code></li>
-                 <li>If using a different port, update the URL accordingly</li>
-                 <li>Ensure the game includes the debug integration script</li>
-                 <li>Check browser console for connection errors</li>
-                 <li>CORS issues may prevent connection to different domains</li>
-               </ul>
-             </div>
-
-                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-               <button
-                 onClick={resetAllSettings}
-                 style={{
-                   padding: '8px 16px',
-                   backgroundColor: '#d32f2f',
-                   border: '1px solid #b71c1c',
-                   borderRadius: '4px',
-                   color: '#fff',
-                   cursor: 'pointer',
-                   fontSize: '14px'
-                 }}
-               >
-                 Reset All Settings
-               </button>
-               <div style={{ display: 'flex', gap: '12px' }}>
-                 <button
-                   onClick={() => setShowConnectionModal(false)}
-                   style={{
-                     padding: '8px 16px',
-                     backgroundColor: 'transparent',
-                     border: '1px solid #555',
-                     borderRadius: '4px',
-                     color: '#ccc',
-                     cursor: 'pointer',
-                     fontSize: '14px'
-                   }}
-                 >
-                   Cancel
-                 </button>
-                 <button
-                   onClick={handleConnect}
-                   disabled={!tempGameUrl.trim()}
-                   style={{
-                     padding: '8px 16px',
-                     backgroundColor: tempGameUrl.trim() ? '#ff6600' : '#555',
-                     border: 'none',
-                     borderRadius: '4px',
-                     color: '#fff',
-                     cursor: tempGameUrl.trim() ? 'pointer' : 'not-allowed',
-                     fontSize: '14px'
-                   }}
-                 >
-                   Connect
-                 </button>
-               </div>
-             </div>
           </div>
         </div>
       )}

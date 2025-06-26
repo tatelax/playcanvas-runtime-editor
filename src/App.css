@@ -299,6 +299,76 @@ body {
   margin: 0;
 }
 
+.tree-lines {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding-left: 8px;
+}
+
+.tree-line {
+  width: 20px;
+  height: 22px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tree-line.vertical::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #4a5d61;
+}
+
+.tree-line.tee::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #4a5d61;
+}
+
+.tree-line.tee::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 11px;
+  width: 11px;
+  height: 1px;
+  background: #4a5d61;
+}
+
+.tree-line.corner::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  height: 11px;
+  width: 1px;
+  background: #4a5d61;
+}
+
+.tree-line.corner::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 11px;
+  width: 11px;
+  height: 1px;
+  background: #4a5d61;
+}
+
+.node-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
 .node-header:hover {
   background: #3a4c50;
 }

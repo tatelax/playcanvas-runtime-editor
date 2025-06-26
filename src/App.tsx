@@ -1261,9 +1261,10 @@ interface HierarchyTreeProps {
   onSelectEntity: (entity: PCEntityData) => void;
   level?: number;
   nodeIndex?: { current: number };
+  parentLines?: boolean[];
 }
 
-function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, nodeIndex }: HierarchyTreeProps) {
+function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, nodeIndex, parentLines = [] }: HierarchyTreeProps) {
   // Defensive check to ensure entities is an array
   if (!Array.isArray(entities)) {
     logger.warn('HierarchyTree received non-array entities:', entities);
@@ -1285,16 +1286,21 @@ function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, no
 
   return (
     <div>
-      {uniqueEntities.map((entity, index) => (
-        <HierarchyNode
-          key={`${entity.guid}_${index}`}
-          entity={entity}
-          selectedEntity={selectedEntity}
-          onSelectEntity={onSelectEntity}
-          level={level}
-          nodeIndex={nodeIndex}
-        />
-      ))}
+      {uniqueEntities.map((entity, index) => {
+        const isLast = index === uniqueEntities.length - 1;
+        return (
+          <HierarchyNode
+            key={`${entity.guid}_${index}`}
+            entity={entity}
+            selectedEntity={selectedEntity}
+            onSelectEntity={onSelectEntity}
+            level={level}
+            nodeIndex={nodeIndex}
+            parentLines={parentLines}
+            isLast={isLast}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -1306,9 +1312,11 @@ interface HierarchyNodeProps {
   onSelectEntity: (entity: PCEntityData) => void;
   level: number;
   nodeIndex?: { current: number };
+  parentLines?: boolean[];
+  isLast?: boolean;
 }
 
-function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeIndex }: HierarchyNodeProps) {
+function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeIndex, parentLines = [], isLast = false }: HierarchyNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = entity.children && Array.isArray(entity.children) && entity.children.length > 0;
   const isSelected = selectedEntity?.guid === entity.guid;
@@ -1348,32 +1356,46 @@ function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeInde
     <div className="hierarchy-node">
       <div
         className={`node-header ${isSelected ? 'selected' : ''} ${!entity.enabled ? 'disabled' : ''}`}
-        style={{ paddingLeft: `${8 + level * 20}px` }}
         onClick={() => onSelectEntity(entity)}
       >
-        <div className="node-indent">
-          {hasChildren && (
+        {/* Tree lines */}
+        <div className="tree-lines">
+          {parentLines.map((shouldDrawLine, index) => (
             <div
-              className="expand-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              key={index}
+              className={`tree-line ${shouldDrawLine ? 'vertical' : ''}`}
+            />
+          ))}
+          {level > 0 && (
+            <div className={`tree-line ${isLast ? 'corner' : 'tee'}`} />
+          )}
+        </div>
+        
+        <div className="node-content">
+          <div className="node-indent">
+            {hasChildren && (
+              <div
+                className="expand-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              </div>
+            )}
+            {!hasChildren && <div style={{ width: 16 }} />}
+          </div>
+          <span className="entity-icon">{getEntityIcon()}</span>
+          <span className="entity-name">{entity.name}</span>
+          {entity.tags.length > 0 && (
+            <div className="entity-tags">
+              {entity.tags.map(tag => (
+                <span key={tag} className="tag">{tag}</span>
+              ))}
             </div>
           )}
-          {!hasChildren && <div style={{ width: 16 }} />}
         </div>
-        <span className="entity-icon">{getEntityIcon()}</span>
-        <span className="entity-name">{entity.name}</span>
-        {entity.tags.length > 0 && (
-          <div className="entity-tags">
-            {entity.tags.map(tag => (
-              <span key={tag} className="tag">{tag}</span>
-            ))}
-          </div>
-        )}
       </div>
       {hasChildren && isExpanded && (
         <HierarchyTree
@@ -1382,6 +1404,7 @@ function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeInde
           onSelectEntity={onSelectEntity}
           level={level + 1}
           nodeIndex={nodeIndex}
+          parentLines={[...parentLines, !isLast]}
         />
       )}
     </div>

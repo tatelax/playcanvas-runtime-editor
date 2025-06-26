@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff } from 'lucide-react';
+import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff, Trash2 } from 'lucide-react';
 import { debugBridge, PCEntityData, PCComponentData } from './PlayCanvasDebugBridge';
 import { logger, LogLevel } from './Logger';
 import { PropertyRenderer } from './PropertyInspectors';
@@ -926,10 +926,12 @@ function App() {
                         )}
                       </div>
                       <button
-                        className="clear-btn"
+                        className="control-btn"
                         onClick={() => setConsoleMessages([])}
+                        title="Clear Console"
+                        style={{ width: 24, height: 24 }}
                       >
-                        Clear
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   )}

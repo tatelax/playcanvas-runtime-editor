@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff, Trash2 } from 'lucide-react';
+import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff, Trash2, Info, Move3D, Layers3 } from 'lucide-react';
 import { debugBridge, PCEntityData, PCComponentData } from './PlayCanvasDebugBridge';
 import { logger, LogLevel } from './Logger';
 import { PropertyRenderer } from './PropertyInspectors';

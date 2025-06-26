@@ -1,5 +1,7 @@
 # PlayCanvas Runtime Editor
 
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/tatelax/playcanvas-runtime-editor)](https://github.com/tatelax/playcanvas-runtime-editor/packages)
+
 A clean, modern React-based runtime editor for PlayCanvas games. This tool provides real-time debugging and inspection capabilities for PlayCanvas applications during development.
 
 ![Screenshot](img/screenshot.png)
@@ -35,37 +37,106 @@ A clean, modern React-based runtime editor for PlayCanvas games. This tool provi
 - **Search**: Find specific messages quickly
 - **Auto-scroll**: Automatically scroll to latest messages
 
-## Quick Start
+## Installation
 
-1. **Copy and paste `src/playcanvas-debug-integration.js` into the root of your game.**
-   
+### From npm (Recommended)
 
-1. **Start PlayCanvas Game as Usual**
-   
-   Typically `npm run dev`
+```bash
+npm install -g @tatelax/playcanvas-runtime-editor
+```
+
+### From GitHub Packages
+
+```bash
+# Configure npm to use GitHub Packages for @tatelax scope
+npm config set @tatelax:registry https://npm.pkg.github.com
+
+# Install the package
+npm install -g @tatelax/playcanvas-runtime-editor
+```
+
+### Running the Editor
+
+After installation:
+```bash
+playcanvas-runtime-editor
+```
+
+### From Source
+
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/yourusername/playcanvas-runtime-editor.git
+   cd playcanvas-runtime-editor
+   ```
 
 2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. **Start PlayCanvas Runtime Editor Server**
+3. **Start Development Server**
    ```bash
    npm start
    ```
 
-4. **Open Web App at URL**
-   
-   Typically `http://localhost:3000`.
+## Quick Start
 
-5. **Enter Game URL and Press Save**
+1. **Install the Runtime Editor** (see Installation above)
+
+2. **Add Debug Integration to Your Game**
+   
+   Copy `src/playcanvas-debug-integration.js` from this repository to your PlayCanvas game root and include it:
+   
+   ```html
+   <script src="playcanvas-debug-integration.js"></script>
+   ```
+
+3. **Start Your PlayCanvas Game**
+   ```bash
+   npm run dev  # or however you start your game
+   ```
+
+4. **Start the Runtime Editor**
+   ```bash
+   playcanvas-runtime-editor  # if installed globally
+   # OR
+   npm start  # if running from source
+   ```
+
+5. **Connect to Your Game**
+   - Open the runtime editor (typically at `http://localhost:3000`)
+   - Enter your game URL (typically `http://localhost:5173/`)
+   - Click "SAVE" to connect
+
+The runtime editor will automatically establish communication with your game and provide real-time debugging capabilities.
+
+## Usage
+
+Once connected, you can:
+
+- **Navigate the scene hierarchy** in the left panel
+- **Select entities** to view their properties in the right panel
+- **Control game execution** with play/pause buttons
+- **View console logs** in the bottom panel
+- **Test different aspect ratios** using the dropdown in the game panel
+- **Enter fullscreen mode** for immersive testing
 
 ## Game Integration
 
-To connect your PlayCanvas game to the runtime editor, copy and paste the debug integration script from this repository into the root of your game.`:
+The runtime editor communicates with your PlayCanvas game through a debug integration script. This script:
 
-```html
-<script src="playcanvas-debug-integration.js"></script>
-```
+- Establishes a communication bridge between the game and editor
+- Sends entity hierarchy updates
+- Forwards console messages
+- Handles game control commands (play/pause)
 
-The script automatically establishes communication with the runtime editor when both are running.
+The integration is lightweight and only active during development.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.

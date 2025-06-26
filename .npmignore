@@ -1,0 +1,37 @@
+# Development files
+node_modules/
+.git/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+ehthumbs.db
+
+# Build artifacts (keep build/ since it's needed for the package)
+coverage/
+
+# Test files
+*.test.js
+*.test.ts
+*.test.tsx
+__tests__/
+
+# Documentation images (optional - you might want to include these)
+img/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 

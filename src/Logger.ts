@@ -2,7 +2,7 @@ export type LogLevel = 'none' | 'error' | 'warn' | 'info' | 'debug';
 
 export class Logger {
   private static instance: Logger;
-  private currentLevel: LogLevel = 'none';
+  private currentLevel: LogLevel = 'info';
   private readonly prefix = '[PlayCanvas Runtime Editor]';
 
   private constructor() {}

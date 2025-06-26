@@ -1,165 +1,131 @@
 # PlayCanvas Runtime Editor
 
-*Real-time debugging, inspection, and performance monitoring for PlayCanvas games*
+A clean, modern React-based runtime editor for PlayCanvas games. This tool provides real-time debugging and inspection capabilities for PlayCanvas applications during development.
 
-![PlayCanvas Runtime Editor](https://img.shields.io/badge/PlayCanvas-Runtime%20Editor-ff6600?style=for-the-badge)
+![Screenshot](img/screenshot.png)
 
-## What is this?
+## Features
 
-The PlayCanvas Runtime Editor is designed for **game developers** who need:
+### 🎮 Game Integration
+- **Live Connection**: Seamlessly connects to PlayCanvas games via iframe
+- **Real-time Updates**: Instant hierarchy and property updates
+- **Cross-origin Support**: Works with games hosted on different domains
 
-- **Real-time Scene Inspection**: View and navigate your game's entity hierarchy as it runs
-- **Live Entity Debugging**: Inspect transform data, components, and properties in real-time
-- **Performance Monitoring**: Track FPS, entity counts, and system performance
-- **Console Integration**: All game console output routed to a clean, filterable interface
-- **Visual Debugging**: Monitor your game while having full access to debugging tools
+### 🌲 Entity Hierarchy
+- **Tree View**: Navigate your scene hierarchy with expandable nodes
+- **Search & Filter**: Quickly find entities by name or tags
+- **Visual Indicators**: See enabled/disabled states and entity tags
+- **Selection Sync**: Click to select entities and view their properties
 
-Think of it as **Unity's Inspector** meets **Chrome DevTools** for PlayCanvas games.
+### 🔍 Property Inspector
+- **Entity Details**: View name, enabled state, GUID, and tags
+- **Transform Data**: Inspect position, rotation, and scale values
+- **Component Properties**: Explore all component data with type-aware rendering
+- **Unity-style UI**: Familiar interface for game developers
 
-## Key Features
+### 🎛️ Game Controls
+- **Play/Pause**: Control game execution
+- **Reload**: Refresh the game iframe
+- **Fullscreen**: Enter fullscreen mode for testing
+- **Aspect Ratios**: Test different screen ratios (16:9, 4:3, 1:1, free)
 
-### 🌳 **Scene Hierarchy**
-- **Real-time entity tree** with expand/collapse navigation
-- **Search and filter** entities by name
-- **Visual indicators** for enabled/disabled entities
-- **Tag display** for easy entity identification
-- **Click to select** entities for detailed inspection
+### 📊 Console
+- **Real-time Logs**: View game console messages as they happen
+- **Message Filtering**: Filter by log type (error, warn, info, log)
+- **Search**: Find specific messages quickly
+- **Auto-scroll**: Automatically scroll to latest messages
 
-### 🔍 **Entity Inspector** 
-- **Unity-style interface** familiar to game developers
-- **Transform controls** showing Position, Rotation, Scale with individual X/Y/Z values
-- **Component listing** with expandable property views
-- **Entity metadata** including GUID, tags, and layer information
-- **Read-only inspection** to prevent accidental modifications during runtime
-
-### 🎮 **Game View**
-- **Embedded game window** with multiple aspect ratio presets
-- **Aspect ratio simulation** for different devices (mobile, tablet, desktop)
-- **Responsive scaling** while maintaining proper game proportions
-- **Seamless integration** with the debugging interface
-
-### 📟 **Console**
-- **All game console output** automatically routed to the editor
-- **Message filtering** by type (log, warn, error, info)
-- **Search functionality** to find specific log messages
-- **Timestamp tracking** for debugging timing issues
-- **Source identification** showing where messages originated
-
-### ⚡ **Performance Monitoring**
-- **Real-time FPS counter** 
-- **Entity count tracking**
-- **Performance diagnostics** panel
-- **System resource monitoring**
+### ⚙️ Settings
+- **Log Levels**: Control verbosity (none, error, warn, info, debug)
+- **Persistent Settings**: Automatically save preferences
+- **Reset Options**: Restore default settings
 
 ## Quick Start
 
-### 1. **Clone and Install**
-```bash
-git clone <repository-url>
-cd playcanvas-runtime-editor
-npm install
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Start Development Server**
+   ```bash
+   npm start
+   ```
+
+3. **Build for Production**
+   ```bash
+   npm run build
+   ```
+
+## Project Structure
+
+```
+src/
+├── App.tsx                 # Main application component
+├── App.css                 # All styling in one file
+├── DiagnosticPanel.tsx     # Settings panel component
+├── Logger.ts               # Simple logging utility
+├── PropertyInspectors.tsx  # Property rendering components
+├── PlayCanvasDebugBridge.ts # Game communication bridge
+└── index.tsx              # Application entry point
 ```
 
-### 2. **Set Up Your PlayCanvas Game**
-Add the integration script to your PlayCanvas game's HTML file:
+## Game Integration
+
+To connect your PlayCanvas game to the runtime editor, copy and paste the debug integration script from this repository into the root of your game. Reference the script below where you reference your game's canvas. Ensure your game is accessible at `http://localhost:5173/`:
 
 ```html
-<!-- Add this script tag to your game's index.html -->
 <script src="playcanvas-debug-integration.js"></script>
 ```
 
-### 3. **Start the Runtime Editor**
-```bash
-npm start
-```
-The editor will open at `http://localhost:3000`
+The script automatically establishes communication with the runtime editor when both are running.
 
-### 4. **Launch Your Game**
-Start your PlayCanvas game at `http://localhost:5173` (or your preferred port)
+## Configuration
 
-The editor will automatically detect and connect to your game!
+### Aspect Ratios
+- **Free**: Responsive layout
+- **16:9**: Standard widescreen
+- **4:3**: Traditional monitor ratio
+- **1:1**: Square viewport
 
-## How It Works
+### Logging Levels
+- **None**: No logging output
+- **Error**: Only error messages
+- **Warn**: Errors and warnings
+- **Info**: Errors, warnings, and info
+- **Debug**: All messages including debug info
 
-The runtime editor uses a **client-server architecture** with iframe-based communication:
+## Development
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│   Runtime Editor    │    │   PlayCanvas Game   │
-│   (React App)       │◄──►│   (iframe)          │
-│                     │    │                     │
-│ • Scene Hierarchy   │    │ • Game Logic        │
-│ • Entity Inspector  │    │ • Rendering         │
-│ • Console Output    │    │ • Debug Integration │
-└─────────────────────┘    └─────────────────────┘
-```
+The runtime editor is built with:
+- **React 18** with TypeScript
+- **Lucide React** for icons
+- **React Resizable Panels** for layout
+- **Modern CSS** with custom properties
 
-1. **Initialization Sync**: The runtime editor signals when it's ready before PlayCanvas initializes
-2. **Message Passing**: Game state and console output are sent via `postMessage`
-3. **Real-time Updates**: Entity hierarchy and performance data update automatically
-4. **Bidirectional Control**: Editor can pause/resume game and request specific data
+### Key Design Principles
+- **Simplicity**: Clean, focused codebase without unnecessary complexity
+- **Performance**: Efficient rendering and minimal re-renders
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Responsiveness**: Works on different screen sizes
 
-## Technical Implementation
+## Browser Support
 
-### **Console Routing**
-- Intercepts all `console.log`, `console.warn`, `console.error` calls
-- Buffers messages when editor isn't connected yet
-- Maintains dual output (browser console + editor console)
-- Preserves original console functionality
-
-### **Entity Data Extraction**
-- Traverses PlayCanvas entity hierarchy recursively
-- Extracts transform data (position, rotation, scale)
-- Catalogs all components and their properties
-- Tracks entity states (enabled/disabled, tags)
-
-### **Performance Monitoring**
-- Hooks into PlayCanvas application lifecycle
-- Tracks frame rates and render statistics
-- Monitors entity creation/destruction
-- Reports system resource usage
-
-### **Communication Protocol**
-- Uses `postMessage` API for secure iframe communication
-- Implements message buffering for reliability
-- Handles connection state management
-- Provides error handling and reconnection logic
-
-## UI Design Philosophy
-
-The runtime editor follows **Unity Editor conventions** to provide a familiar experience:
-
-- **Dark theme** with professional color scheme
-- **Resizable panels** with persistent layout preferences
-- **Hierarchical navigation** with expand/collapse controls
-- **Property inspector** with grouped sections
-- **Consistent iconography** and visual language
-- **Responsive design** that adapts to different screen sizes
-
-## Development Workflow
-
-1. **Open Runtime Editor** in one browser tab/window
-2. **Launch your PlayCanvas game** in the embedded iframe
-3. **Inspect entities** by clicking in the hierarchy
-4. **Monitor console output** for debugging information
-5. **Track performance** using the built-in metrics
-6. **Iterate rapidly** with real-time feedback
-
-## Browser Compatibility
-
-- ✅ **Chrome/Chromium** (Recommended)
-- ✅ **Firefox**
-- ✅ **Safari**
-- ✅ **Edge**
-
-## Contributing
-
-We welcome contributions! Please see our contributing guidelines for more information.
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - see LICENSE file for details.
 
----
+## Contributing
 
-**Built for PlayCanvas developers, by PlayCanvas developers** 🚀
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+For bugs and feature requests, please open an issue on GitHub.

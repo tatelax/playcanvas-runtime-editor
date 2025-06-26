@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, Minus, Plus, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github } from 'lucide-react';
+import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, Minus, Plus, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Bug, Wifi, WifiOff } from 'lucide-react';
 import { debugBridge, PCEntityData, PCComponentData, PerformanceData } from './PlayCanvasDebugBridge';
 import { DiagnosticPanel } from './DiagnosticPanel';
 import { logger, LogLevel } from './Logger';
@@ -16,8 +16,9 @@ interface ConsoleMessage {
   source?: string;
 }
 
-// Aspect ratio storage key
+// Storage keys
 const ASPECT_RATIO_KEY = 'playcanvas-debug-aspect-ratio';
+const GAME_URL_KEY = 'playcanvas-debug-game-url';
 
 // Custom Dropdown Component
 interface DropdownOption {
@@ -101,10 +102,14 @@ function App() {
   const [isGameFullscreen, setIsGameFullscreen] = useState(false);
 
   const [gameName, setGameName] = useState('PlayCanvas Game');
+  const [gameUrl, setGameUrl] = useState('http://localhost:5173/');
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [tempGameUrl, setTempGameUrl] = useState('http://localhost:5173/');
+  const [isConnecting, setIsConnecting] = useState(false);
   const gameFrameRef = useRef<HTMLIFrameElement>(null);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
-  // Load saved aspect ratio and logger level from localStorage
+  // Load saved settings from localStorage
   useEffect(() => {
     try {
       // Load aspect ratio
@@ -112,6 +117,18 @@ function App() {
       if (savedAspectRatio) {
         setAspectRatio(savedAspectRatio);
         logger.debug('Loaded aspect ratio:', savedAspectRatio);
+      }
+
+      // Load game URL
+      const savedGameUrl = localStorage.getItem(GAME_URL_KEY);
+      if (savedGameUrl) {
+        setGameUrl(savedGameUrl);
+        setTempGameUrl(savedGameUrl);
+        logger.debug('Loaded game URL:', savedGameUrl);
+        // Don't auto-connect here, will be handled by a separate useEffect
+      } else {
+        // No saved URL, show connection modal
+        setShowConnectionModal(true);
       }
 
       // Load logger level
@@ -136,6 +153,16 @@ function App() {
     }
   };
 
+  // Handle connection modal
+  const handleConnect = () => {
+    connectToGame(tempGameUrl);
+  };
+
+  const handleShowConnectionModal = () => {
+    setTempGameUrl(gameUrl);
+    setShowConnectionModal(true);
+  };
+
   // Reset all settings to defaults
   const resetAllSettings = () => {
     // Reset aspect ratio
@@ -149,6 +176,7 @@ function App() {
     // Clear localStorage
     try {
       localStorage.removeItem(ASPECT_RATIO_KEY);
+      localStorage.removeItem(GAME_URL_KEY);
     } catch (error) {
       logger.warn('Failed to clear localStorage:', error);
     }
@@ -219,7 +247,6 @@ function App() {
       
       if (currentString !== newString) {
         setEntityHierarchy(newHierarchy);
-        logger.debug('Hierarchy updated with new data');
       }
     });
 
@@ -250,6 +277,38 @@ function App() {
     setConsoleMessages(prev => [...prev, newMessage]);
   };
 
+  // Connect to game URL
+  const connectToGame = (url: string) => {
+    if (!url.trim()) {
+      addConsoleMessage('error', 'Please enter a valid URL');
+      return;
+    }
+
+    setIsConnecting(true);
+    setGameUrl(url);
+    
+    // Save URL to localStorage
+    try {
+      localStorage.setItem(GAME_URL_KEY, url);
+      logger.debug('Saved game URL:', url);
+    } catch (error) {
+      logger.warn('Failed to save game URL:', error);
+    }
+
+    // Update iframe src
+    if (gameFrameRef.current) {
+      gameFrameRef.current.src = url;
+    }
+
+    addConsoleMessage('info', `Connecting to ${url}...`);
+    setShowConnectionModal(false);
+    
+    // Reset connection state after timeout
+    setTimeout(() => {
+      setIsConnecting(false);
+    }, 3000);
+  };
+
   // Auto-scroll console to bottom
   useEffect(() => {
     consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -259,13 +318,21 @@ function App() {
   useEffect(() => {
     if (gameFrameRef.current) {
       debugBridge.setGameFrame(gameFrameRef.current);
-      
-      // Signal to the game that runtime editor is ready after a short delay
-      setTimeout(() => {
-        debugBridge.signalDebugOverlayReady();
-      }, 1000);
     }
   }, []);
+
+  // Auto-connect to saved URL after component is fully loaded
+  useEffect(() => {
+    const savedGameUrl = localStorage.getItem(GAME_URL_KEY);
+    if (savedGameUrl && gameUrl === savedGameUrl && gameFrameRef.current) {
+      // Auto-connect after a short delay to ensure iframe is ready
+      setTimeout(() => {
+        connectToGame(savedGameUrl);
+      }, 500);
+    }
+  }, [gameUrl]); // Trigger when gameUrl changes
+
+  // Signal readiness is now handled by the debug bridge when iframe loads
 
   const handlePlayPause = () => {
     if (!isConnected) {
@@ -472,13 +539,25 @@ function App() {
       {/* Top Controls Bar */}
       <div className="controls-bar">
         <div className="controls-left">
-          <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-            <div className="status-dot"></div>
-            <div className="status-text">
-              <span className="connection-text">
-                {isConnected ? 'Connected to PlayCanvas' : 'Connecting...'}
+          <div className="connection-status" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isConnecting ? (
+              <div className="connection-indicator connecting" title="Connecting..." style={{ color: '#ffa500', display: 'flex', alignItems: 'center' }}>
+                <WifiOff size={16} />
+              </div>
+            ) : isConnected ? (
+              <div className="connection-indicator connected" title="Connected" style={{ color: '#4caf50', display: 'flex', alignItems: 'center' }}>
+                <Wifi size={16} />
+              </div>
+            ) : (
+              <div className="connection-indicator disconnected" title="Disconnected" style={{ color: '#f44336', display: 'flex', alignItems: 'center' }}>
+                <WifiOff size={16} />
+              </div>
+            )}
+            <div className="status-text" style={{ color: '#ccc' }}>
+              <span className="connection-text" style={{ fontSize: '14px' }}>
+                {isConnecting ? 'Connecting...' : isConnected ? 'Connected to PlayCanvas' : 'Disconnected'}
               </span>
-              <span className="version-text">v{packageJson.version}</span>
+              <span className="version-text" style={{ fontSize: '12px', opacity: 0.7 }}>v{packageJson.version}</span>
             </div>
           </div>
         </div>
@@ -504,7 +583,7 @@ function App() {
           <button 
             className="control-btn" 
             title="GitHub Repository"
-            onClick={() => window.open('https://github.com', '_blank')}
+            onClick={() => window.open('https://github.com/tatelax/playcanvas-runtime-editor', '_blank')}
           >
             <Github size={16} />
           </button>
@@ -519,6 +598,13 @@ function App() {
               backgroundColor: showDiagnostics ? '#2196f3' : undefined,
               borderColor: showDiagnostics ? '#1976d2' : undefined
             }}
+          >
+            <Bug size={16} />
+          </button>
+          <button 
+            className="control-btn" 
+            title="Connection Settings"
+            onClick={handleShowConnectionModal}
           >
             <Settings size={16} />
           </button>
@@ -608,7 +694,7 @@ function App() {
                       />
                       <button
                         className="control-btn"
-                        onClick={() => window.open('http://localhost:5174', '_blank')}
+                        onClick={() => window.open(gameUrl, '_blank')}
                         title="Open Game in New Tab"
                         style={{ width: 24, height: 24 }}
                       >
@@ -628,7 +714,7 @@ function App() {
                     <div style={getAspectRatioStyle()}>
                       <iframe
                         ref={gameFrameRef}
-                        src="http://localhost:5173"
+                        src={gameUrl}
                         title="PlayCanvas Game"
                         className="game-frame"
                         style={{ width: '100%', height: '100%' }}
@@ -775,7 +861,119 @@ function App() {
           onSettingsReset={resetAllSettings}
         />
       )}
-      
+
+      {/* Connection Modal */}
+      {showConnectionModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div className="modal-content" style={{
+            backgroundColor: '#2d2d2d',
+            border: '1px solid #555',
+            borderRadius: '8px',
+            padding: '24px',
+            minWidth: '500px',
+            maxWidth: '600px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>Game Connection Settings</h2>
+              <button
+                onClick={() => setShowConnectionModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#999',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ color: '#ccc', display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Game URL:
+              </label>
+              <input
+                type="text"
+                value={tempGameUrl}
+                onChange={(e) => setTempGameUrl(e.target.value)}
+                placeholder="http://localhost:5173/"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #555',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleConnect();
+                  }
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#1a1a1a', borderRadius: '4px', border: '1px solid #333' }}>
+              <h4 style={{ margin: '0 0 8px 0', color: '#ff6600', fontSize: '14px' }}>Troubleshooting:</h4>
+              <ul style={{ margin: '0', paddingLeft: '16px', color: '#ccc', fontSize: '12px', lineHeight: '1.4' }}>
+                <li>Make sure your PlayCanvas game is running on the specified URL</li>
+                <li>Default development server runs on <code style={{ backgroundColor: '#333', padding: '2px 4px', borderRadius: '2px' }}>http://localhost:5173/</code></li>
+                <li>If using a different port, update the URL accordingly</li>
+                <li>Ensure the game includes the debug integration script</li>
+                <li>Check browser console for connection errors</li>
+                <li>CORS issues may prevent connection to different domains</li>
+              </ul>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowConnectionModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #555',
+                  borderRadius: '4px',
+                  color: '#ccc',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConnect}
+                disabled={!tempGameUrl.trim()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: tempGameUrl.trim() ? '#ff6600' : '#555',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  cursor: tempGameUrl.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: '14px'
+                }}
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -801,11 +999,20 @@ function HierarchyTree({ entities, selectedEntity, onSelectEntity, level = 0, no
     );
   }
 
+  // Remove duplicates based on GUID to prevent React key errors
+  const uniqueEntities = entities.filter((entity, index, self) => 
+    index === self.findIndex(e => e.guid === entity.guid)
+  );
+
+  if (uniqueEntities.length !== entities.length) {
+    logger.warn(`Removed ${entities.length - uniqueEntities.length} duplicate entities from hierarchy`);
+  }
+
   return (
     <div style={{ paddingLeft: level * 16 }}>
-      {entities.map(entity => (
+      {uniqueEntities.map((entity, index) => (
         <HierarchyNode
-          key={entity.guid}
+          key={`${entity.guid}_${index}`}
           entity={entity}
           selectedEntity={selectedEntity}
           onSelectEntity={onSelectEntity}

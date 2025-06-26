@@ -22,7 +22,7 @@ export interface PCComponentData {
 }
 
 export interface DebugMessage {
-  type: 'hierarchy' | 'entity-selected' | 'console' | 'performance' | 'control' | 'debug-connected';
+  type: 'hierarchy' | 'entity-selected' | 'console' | 'performance' | 'control' | 'debug-connected' | 'debug-overlay-ready' | 'debug-connect';
   data: any;
 }
 
@@ -52,9 +52,21 @@ export class PlayCanvasDebugBridge {
     
     // Wait for frame to load then establish connection
     frame.onload = () => {
+      // First signal that the runtime editor is ready
+      setTimeout(() => {
+        this.signalDebugOverlayReady();
+      }, 500);
+      
+      // Wait longer for the PlayCanvas app and debug integration to initialize
       setTimeout(() => {
         this.establishConnection();
-      }, 1000);
+        // Try again after another delay in case the first attempt was too early
+        setTimeout(() => {
+          if (!this.isConnected) {
+            this.establishConnection();
+          }
+        }, 2000);
+      }, 2000);
     };
   }
 
@@ -66,7 +78,6 @@ export class PlayCanvasDebugBridge {
         timestamp: new Date().toISOString()
       }
     });
-    logger.info('Signaled to game that runtime editor is ready');
   }
 
   private establishConnection() {

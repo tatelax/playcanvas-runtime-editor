@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, Minus, Plus, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff } from 'lucide-react';
-import { debugBridge, PCEntityData, PCComponentData, PerformanceData } from './PlayCanvasDebugBridge';
+import { Play, Pause, Settings, Search, ChevronRight, ChevronDown, ChevronLeft, ChevronUp, RotateCcw, TreePine, Monitor, Search as SearchIcon, Terminal, X, ExternalLink, Maximize, Github, Wifi, WifiOff } from 'lucide-react';
+import { debugBridge, PCEntityData, PCComponentData } from './PlayCanvasDebugBridge';
 import { logger, LogLevel } from './Logger';
 import { PropertyRenderer } from './PropertyInspectors';
 import packageJson from '../package.json';
@@ -155,6 +155,7 @@ function App() {
     } catch (error) {
       logger.warn('Failed to load saved settings:', error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save aspect ratio to localStorage
@@ -299,6 +300,7 @@ function App() {
     return () => {
       // Cleanup if needed
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remove isConnected dependency to prevent infinite loop
 
   const addConsoleMessage = (type: ConsoleMessage['type'], message: string, source?: string) => {
@@ -365,6 +367,7 @@ function App() {
         connectToGame(savedGameUrl);
       }, 500);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameUrl]); // Trigger when gameUrl changes
 
   // Signal readiness is now handled by the debug bridge when iframe loads
@@ -387,7 +390,8 @@ function App() {
 
   const handleReload = () => {
     if (gameFrameRef.current) {
-      gameFrameRef.current.src = gameFrameRef.current.src; // Force reload
+      const currentSrc = gameFrameRef.current.src;
+      gameFrameRef.current.src = currentSrc; // Force reload
       addConsoleMessage('info', 'Game reloaded');
       logger.info('Game iframe reloaded');
     } else {
@@ -1270,11 +1274,6 @@ function EntityInspector({ entity }: EntityInspectorProps) {
       </div>
     );
   }
-
-  const formatVector = (vec: { x: number; y: number; z: number } | undefined) => {
-    if (!vec) return 'Not set';
-    return `(${vec.x.toFixed(2)}, ${vec.y.toFixed(2)}, ${vec.z.toFixed(2)})`;
-  };
 
   const renderTransformField = (label: string, vec: { x: number; y: number; z: number } | undefined) => {
     return (

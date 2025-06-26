@@ -1609,12 +1609,12 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
 
   // Define which component types have full editing support
   const hasFullEditorSupport = (componentType: string) => {
-    const supportedComponents = ['transform', 'camera', 'light', 'model', 'rigidbody', 'collision'];
+    const supportedComponents = ['transform', 'camera', 'light', 'model', 'render', 'rigidbody', 'collision'];
     return supportedComponents.includes(componentType);
   };
 
   const hasPartialEditorSupport = (componentType: string) => {
-    const partiallySupported = ['element', 'layoutchild', 'layoutgroup', 'button', 'script'];
+    const partiallySupported = ['element', 'layoutchild', 'layoutgroup', 'button', 'script', 'sound', 'animation'];
     return partiallySupported.includes(componentType);
   };
 
@@ -1631,6 +1631,7 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
 
   // Define enum options for specific component types and properties
   const getEnumOptions = (componentType: string, propertyName: string) => {
+    // Light component enums
     if (componentType === 'light' && propertyName === 'type') {
       return [
         { value: 'directional', label: 'Directional' },
@@ -1638,6 +1639,8 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
         { value: 'spot', label: 'Spot' }
       ];
     }
+    
+    // Rigidbody component enums
     if (componentType === 'rigidbody' && propertyName === 'type') {
       return [
         { value: 'static', label: 'Static' },
@@ -1645,6 +1648,8 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
         { value: 'kinematic', label: 'Kinematic' }
       ];
     }
+    
+    // Collision component enums
     if (componentType === 'collision' && propertyName === 'type') {
       return [
         { value: 'box', label: 'Box' },
@@ -1654,6 +1659,37 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
         { value: 'mesh', label: 'Mesh' }
       ];
     }
+    
+    // Render component enums
+    if (componentType === 'render' && propertyName === 'type') {
+      return [
+        { value: 'asset', label: 'Asset' },
+        { value: 'box', label: 'Box' },
+        { value: 'sphere', label: 'Sphere' },
+        { value: 'cylinder', label: 'Cylinder' },
+        { value: 'plane', label: 'Plane' },
+        { value: 'capsule', label: 'Capsule' },
+        { value: 'cone', label: 'Cone' }
+      ];
+    }
+    
+    // Element component enums
+    if (componentType === 'element' && propertyName === 'type') {
+      return [
+        { value: 'group', label: 'Group' },
+        { value: 'image', label: 'Image' },
+        { value: 'text', label: 'Text' }
+      ];
+    }
+    
+    // Camera component enums
+    if (componentType === 'camera' && propertyName === 'projection') {
+      return [
+        { value: 0, label: 'Perspective' },
+        { value: 1, label: 'Orthographic' }
+      ];
+    }
+    
     return undefined;
   };
 

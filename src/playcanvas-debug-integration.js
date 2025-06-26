@@ -437,7 +437,7 @@ class PlayCanvasDebugInterface {
         }
         
         // Include component states
-        const componentTypes = ['model', 'camera', 'light', 'script', 'rigidbody', 'collision', 'sound', 'animation'];
+        const componentTypes = ['model', 'render', 'camera', 'light', 'script', 'rigidbody', 'collision', 'sound', 'animation'];
         componentTypes.forEach(type => {
             if (entity[type]) {
                 hash += `:${type}${entity[type].enabled}`;
@@ -574,19 +574,29 @@ class PlayCanvasDebugInterface {
 
         const components = [];
         
-        // Common PlayCanvas components
-        const componentTypes = ['model', 'camera', 'light', 'script', 'rigidbody', 'collision', 'sound', 'animation', 'element', 'layoutchild', 'layoutgroup', 'button', 'scrollview', 'particlesystem'];
-        
-        componentTypes.forEach(type => {
-            if (entity[type]) {
+        // Universal component detection - scan for all properties that look like components
+        for (const prop in entity) {
+            const component = entity[prop];
+            
+            // Skip non-component properties
+            if (!component || typeof component !== 'object') continue;
+            if (prop === 'parent' || prop === 'children' || prop === 'tags') continue;
+            if (prop.startsWith('_') || prop === 'data') continue; // Skip internal properties
+            
+            // Check if this looks like a component (has entity reference and enabled property)
+            const looksLikeComponent = component.entity === entity || 
+                                     (component.hasOwnProperty && component.hasOwnProperty('enabled')) ||
+                                     (component.system && typeof component.system === 'object');
+            
+            if (looksLikeComponent) {
                 const componentData = {
-                    type: type,
-                    enabled: entity[type].enabled !== undefined ? entity[type].enabled : true,
-                    data: this.extractComponentData(entity[type], type)
+                    type: prop,
+                    enabled: component.enabled !== undefined ? component.enabled : true,
+                    data: this.extractComponentData(component, prop)
                 };
                 components.push(componentData);
             }
-        });
+        }
 
         return {
             name: entity.name,
@@ -623,7 +633,7 @@ class PlayCanvasDebugInterface {
         
         // 2. Entities that are children of text elements and have mesh components
         // (these are typically the auto-generated text rendering meshes)
-        if (entity.parent && entity.parent.element && entity.parent.element.type === 'text' && entity.model) {
+        if (entity.parent && entity.parent.element && entity.parent.element.type === 'text' && (entity.model || entity.render)) {
             return true;
         }
         
@@ -633,7 +643,7 @@ class PlayCanvasDebugInterface {
         }
         
         // 4. Entities with only mesh/render components and no user components
-        const hasOnlyRenderingComponents = entity.model && !entity.script && !entity.sound && !entity.light && !entity.camera && !entity.collision && !entity.rigidbody;
+        const hasOnlyRenderingComponents = (entity.model || entity.render) && !entity.script && !entity.sound && !entity.light && !entity.camera && !entity.collision && !entity.rigidbody;
         const isChildOfUIElement = entity.parent && entity.parent.element;
         
         if (hasOnlyRenderingComponents && isChildOfUIElement) {
@@ -652,6 +662,13 @@ class PlayCanvasDebugInterface {
                     data.asset = component.asset || null;
                     data.castShadows = component.castShadows;
                     data.receiveShadows = component.receiveShadows;
+                    break;
+                case 'render':
+                    data.type = component.type || null;
+                    data.asset = component.asset || null;
+                    data.castShadows = component.castShadows;
+                    data.receiveShadows = component.receiveShadows;
+                    data.material = component.material ? 'StandardMaterial' : null;
                     break;
                 case 'camera':
                     data.fov = component.fov;
@@ -748,10 +765,47 @@ class PlayCanvasDebugInterface {
                     data.autoPlay = component.autoPlay;
                     break;
                 default:
-                    // Generic component data extraction
+                    // Generic component data extraction with enhanced type information
                     for (const prop in component) {
-                        if (typeof component[prop] !== 'function' && prop !== 'entity' && prop !== 'system') {
-                            data[prop] = component[prop];
+                        if (typeof component[prop] === 'function') continue;
+                        if (prop === 'entity' || prop === 'system') continue;
+                        if (prop.startsWith('_')) continue; // Skip private properties
+                        
+                        const value = component[prop];
+                        
+                        // Enhance value with type information for better UI generation
+                        if (value !== null && value !== undefined) {
+                            // Handle PlayCanvas Vec3 objects
+                            if (value && typeof value === 'object' && value.x !== undefined && value.y !== undefined && value.z !== undefined) {
+                                data[prop] = { x: value.x, y: value.y, z: value.z };
+                            }
+                            // Handle PlayCanvas Vec2 objects  
+                            else if (value && typeof value === 'object' && value.x !== undefined && value.y !== undefined && value.z === undefined) {
+                                data[prop] = { x: value.x, y: value.y };
+                            }
+                            // Handle PlayCanvas Color objects
+                            else if (value && typeof value === 'object' && value.r !== undefined && value.g !== undefined && value.b !== undefined) {
+                                data[prop] = { 
+                                    r: value.r, 
+                                    g: value.g, 
+                                    b: value.b, 
+                                    a: value.a !== undefined ? value.a : 1 
+                                };
+                            }
+                            // Handle arrays
+                            else if (Array.isArray(value)) {
+                                data[prop] = value.slice(); // Copy array
+                            }
+                            // Handle nested objects
+                            else if (typeof value === 'object' && value.constructor === Object) {
+                                data[prop] = { ...value }; // Copy object
+                            }
+                            // Handle primitives
+                            else {
+                                data[prop] = value;
+                            }
+                        } else {
+                            data[prop] = value;
                         }
                     }
             }

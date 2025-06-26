@@ -78,7 +78,7 @@ function App() {
   const [entityHierarchy, setEntityHierarchy] = useState<PCEntityData[]>([]);
   const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([
     {
-      id: Date.now(),
+      id: 1,
       type: 'info',
       message: 'PlayCanvas Runtime Editor starting...',
       timestamp: new Date()
@@ -117,6 +117,9 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const gameFrameRef = useRef<HTMLIFrameElement>(null);
   const consoleEndRef = useRef<HTMLDivElement>(null);
+  
+  // Counter for generating unique console message IDs
+  const consoleMessageIdCounter = useRef(1);
 
   // Load saved settings from localStorage
   useEffect(() => {
@@ -305,7 +308,7 @@ function App() {
 
   const addConsoleMessage = (type: ConsoleMessage['type'], message: string, source?: string) => {
     const newMessage: ConsoleMessage = {
-      id: Date.now(),
+      id: ++consoleMessageIdCounter.current,
       type,
       message,
       timestamp: new Date(),

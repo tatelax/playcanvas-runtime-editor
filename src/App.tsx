@@ -1607,6 +1607,28 @@ interface ComponentInspectorProps {
 function ComponentInspector({ component, entity, isConnected }: ComponentInspectorProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Define which component types have full editing support
+  const hasFullEditorSupport = (componentType: string) => {
+    const supportedComponents = ['transform', 'camera', 'light', 'model', 'rigidbody', 'collision'];
+    return supportedComponents.includes(componentType);
+  };
+
+  const hasPartialEditorSupport = (componentType: string) => {
+    const partiallySupported = ['element', 'layoutchild', 'layoutgroup', 'button', 'script'];
+    return partiallySupported.includes(componentType);
+  };
+
+  const getComponentSupportLevel = (componentType: string) => {
+    if (hasFullEditorSupport(componentType)) {
+      return 'full';
+    } else if (hasPartialEditorSupport(componentType)) {
+      return 'partial';
+    }
+    return 'basic';
+  };
+
+  const supportLevel = getComponentSupportLevel(component.type);
+
   // Define enum options for specific component types and properties
   const getEnumOptions = (componentType: string, propertyName: string) => {
     if (componentType === 'light' && propertyName === 'type') {
@@ -1636,7 +1658,7 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
   };
 
   return (
-    <div className="component-inspector">
+    <div className={`component-inspector ${supportLevel}-support`}>
       <div
         className="component-header"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -1663,16 +1685,31 @@ function ComponentInspector({ component, entity, isConnected }: ComponentInspect
       </div>
       {isExpanded && (
         <div className="component-properties">
+          {supportLevel === 'basic' && (
+            <div className="component-support-notice">
+              <span style={{ color: '#8d9ea1', fontSize: '11px', fontStyle: 'italic' }}>
+                This component is displayed for visibility but has limited editing support. 
+                Properties are shown as read-only values.
+              </span>
+            </div>
+          )}
+          {supportLevel === 'partial' && (
+            <div className="component-support-notice">
+              <span style={{ color: '#ff9800', fontSize: '11px', fontStyle: 'italic' }}>
+                This component has partial editing support. Some properties may be read-only.
+              </span>
+            </div>
+          )}
           {Object.entries(component.data).map(([key, value]) => (
             <PropertyRenderer
               key={key}
               label={key}
               value={value}
               enumOptions={getEnumOptions(component.type, key)}
-              onChange={isConnected ? (newValue) => {
+              onChange={isConnected && supportLevel !== 'basic' ? (newValue) => {
                 debugBridge.updateComponentProperty(entity.guid, component.type, key, newValue);
               } : undefined}
-              readOnly={!isConnected}
+              readOnly={!isConnected || supportLevel === 'basic'}
             />
           ))}
         </div>

@@ -679,6 +679,26 @@ select option {
   word-break: break-word;
 }
 
+.component-support-notice {
+  background: rgba(74, 93, 97, 0.3);
+  border: 1px solid #4a5d61;
+  border-radius: 3px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.component-inspector.basic-support .component-header {
+  background: rgba(141, 158, 161, 0.1);
+}
+
+.component-inspector.partial-support .component-header {
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.component-inspector.full-support .component-header {
+  background: rgba(76, 175, 80, 0.1);
+}
+
 /* Unity-style Transform Inspector */
 .transform-section {
   border: 1px solid #4a5d61;

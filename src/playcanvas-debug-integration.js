@@ -575,7 +575,7 @@ class PlayCanvasDebugInterface {
         const components = [];
         
         // Common PlayCanvas components
-        const componentTypes = ['model', 'camera', 'light', 'script', 'rigidbody', 'collision', 'sound', 'animation'];
+        const componentTypes = ['model', 'camera', 'light', 'script', 'rigidbody', 'collision', 'sound', 'animation', 'element', 'layoutchild', 'layoutgroup', 'button', 'scrollview', 'particlesystem'];
         
         componentTypes.forEach(type => {
             if (entity[type]) {
@@ -698,6 +698,54 @@ class PlayCanvasDebugInterface {
                             };
                         });
                     }
+                    break;
+                case 'element':
+                    data.type = component.type;
+                    data.anchor = component.anchor ? [component.anchor.x, component.anchor.y, component.anchor.z, component.anchor.w] : null;
+                    data.pivot = component.pivot ? [component.pivot.x, component.pivot.y] : null;
+                    data.width = component.width;
+                    data.height = component.height;
+                    data.margin = component.margin ? [component.margin.x, component.margin.y, component.margin.z, component.margin.w] : null;
+                    if (component.type === 'text') {
+                        data.text = component.text;
+                        data.fontSize = component.fontSize;
+                        data.color = component.color ? [component.color.r, component.color.g, component.color.b, component.color.a] : null;
+                        data.fontAsset = component.fontAsset;
+                        data.autoWidth = component.autoWidth;
+                        data.autoHeight = component.autoHeight;
+                    }
+                    break;
+                case 'layoutchild':
+                    data.excludeFromLayout = component.excludeFromLayout;
+                    break;
+                case 'layoutgroup':
+                    data.orientation = component.orientation;
+                    data.spacing = component.spacing ? [component.spacing.x, component.spacing.y] : null;
+                    data.padding = component.padding ? [component.padding.x, component.padding.y, component.padding.z, component.padding.w] : null;
+                    data.alignment = component.alignment ? [component.alignment.x, component.alignment.y] : null;
+                    data.widthFitting = component.widthFitting;
+                    data.heightFitting = component.heightFitting;
+                    break;
+                case 'button':
+                    data.active = component.active;
+                    data.imageEntity = component.imageEntity ? component.imageEntity.name : null;
+                    data.hitPadding = component.hitPadding ? [component.hitPadding.x, component.hitPadding.y, component.hitPadding.z, component.hitPadding.w] : null;
+                    data.transitionMode = component.transitionMode;
+                    break;
+                case 'scrollview':
+                    data.horizontal = component.horizontal;
+                    data.vertical = component.vertical;
+                    data.scrollMode = component.scrollMode;
+                    data.bounceAmount = component.bounceAmount;
+                    data.friction = component.friction;
+                    break;
+                case 'particlesystem':
+                    data.numParticles = component.numParticles;
+                    data.lifetime = component.lifetime;
+                    data.rate = component.rate;
+                    data.emitterShape = component.emitterShape;
+                    data.loop = component.loop;
+                    data.autoPlay = component.autoPlay;
                     break;
                 default:
                     // Generic component data extraction

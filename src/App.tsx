@@ -1307,12 +1307,29 @@ function HierarchyNode({ entity, selectedEntity, onSelectEntity, level, nodeInde
 
   // Get entity icon based on components or name
   const getEntityIcon = () => {
-    if (entity.components.some(c => c.type === 'camera')) return '📷';
-    if (entity.components.some(c => c.type === 'light')) return '💡';
-    if (entity.components.some(c => c.type === 'model')) return '📦';
-    if (entity.components.some(c => c.type === 'collision')) return '🔲';
-    if (entity.name.toLowerCase().includes('ui')) return '🖼️';
-    return '📁'; // Default folder icon
+    // If no components, use folder emoji
+    if (!entity.components || entity.components.length === 0) {
+      return '📁';
+    }
+
+    // Use first component to determine icon
+    const firstComponent = entity.components[0];
+    switch (firstComponent.type) {
+      case 'camera': return '📷';
+      case 'light': return '💡';
+      case 'model': return '📦';
+      case 'collision': return '🔲';
+      case 'rigidbody': return '🎯';
+      case 'script': return '📜';
+      case 'sound': return '🔊';
+      case 'animation': return '🎬';
+      case 'particlesystem': return '✨';
+      case 'sprite': return '🖼️';
+      case 'element': return '📱';
+      case 'button': return '🔘';
+      case 'text': return '📝';
+      default: return '🔧'; // Generic component icon
+    }
   };
 
   return (
@@ -1409,13 +1426,6 @@ function EntityInspector({ entity, isConnected }: EntityInspectorProps) {
         {metadataExpanded && (
           <div style={{ padding: '12px' }}>
             <div className="entity-name-row">
-              <input
-                type="text"
-                className="entity-name-input"
-                value={entity.name}
-                readOnly
-                title="Entity Name"
-              />
               <div className="entity-enabled-checkbox">
                 <input
                   type="checkbox"
@@ -1436,6 +1446,13 @@ function EntityInspector({ entity, isConnected }: EntityInspectorProps) {
                 />
                 <label htmlFor={`enabled-${entity.guid}`} className="checkbox-label-inline"></label>
               </div>
+              <input
+                type="text"
+                className="entity-name-input"
+                value={entity.name}
+                readOnly
+                title="Entity Name"
+              />
             </div>
             
             {/* Static/Tag/Layer row - Unity style */}
@@ -1523,9 +1540,21 @@ function EntityInspector({ entity, isConnected }: EntityInspectorProps) {
         </div>
         {componentsExpanded && (
           <div style={{ padding: '8px' }}>
-            {entity.components.map((component, index) => (
-              <ComponentInspector key={index} component={component} entity={entity} isConnected={isConnected} />
-            ))}
+            {entity.components.length === 0 ? (
+              <div style={{ 
+                color: '#8d9ea1', 
+                fontSize: '12px', 
+                fontStyle: 'italic', 
+                textAlign: 'center', 
+                padding: '16px 8px' 
+              }}>
+                No components added
+              </div>
+            ) : (
+              entity.components.map((component, index) => (
+                <ComponentInspector key={index} component={component} entity={entity} isConnected={isConnected} />
+              ))
+            )}
           </div>
         )}
       </div>
